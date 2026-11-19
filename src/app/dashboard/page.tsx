@@ -32,18 +32,14 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty"
 import { Skeleton } from "@/components/ui/skeleton"
+import {
+  getFavouritesSnapshot,
+  getServerFavouritesSnapshot,
+  parseFavourites,
+  subscribeFavourites,
+} from "@/lib/favourites"
 
 const API_URL = "http://localhost:8000/appointments"
-
-/**
- * Favourites are saved by the customer (e.g. on the Favourites page) in
- * localStorage under this key, as a JSON array of
- * { id, name, image, price }. The overview reads the same key, and also
- * listens for the "salonbook-favourites-change" event so both pages stay
- * in sync within the same tab.
- */
-const FAVOURITES_KEY = "salonbook:favourites"
-const FAVOURITES_EVENT = "salonbook-favourites-change"
 
 type Appointment = {
   _id: string
@@ -58,13 +54,6 @@ type Appointment = {
   paymentStatus?: string
   userId?: string
   createdAt: string
-}
-
-type StoredFavourite = {
-  id: string | number
-  name: string
-  image: string
-  price: number
 }
 
 const STATUS_STYLES: Record<string, string> = {
@@ -148,43 +137,6 @@ async function fetchAppointments(): Promise<Appointment[]> {
 }
 
 /* ------------------------------------------------------------------ */
-/* Favourites (localStorage)                                           */
-/* ------------------------------------------------------------------ */
-
-function subscribeToFavourites(onChange: () => void) {
-  const onStorage = () => onChange()
-  window.addEventListener("storage", onStorage)
-  window.addEventListener(FAVOURITES_EVENT, onStorage)
-  return () => {
-    window.removeEventListener("storage", onStorage)
-    window.removeEventListener(FAVOURITES_EVENT, onStorage)
-  }
-}
-
-function readFavouritesSnapshot(): string {
-  try {
-    return window.localStorage.getItem(FAVOURITES_KEY) ?? "[]"
-  } catch {
-    return "[]"
-  }
-}
-
-function parseFavourites(raw: string): StoredFavourite[] {
-  try {
-    const parsed: unknown = JSON.parse(raw)
-    if (!Array.isArray(parsed)) return []
-    return parsed.filter(
-      (item): item is StoredFavourite =>
-        typeof item === "object" &&
-        item !== null &&
-        typeof (item as { name?: unknown }).name === "string"
-    )
-  } catch {
-    return []
-  }
-}
-
-/* ------------------------------------------------------------------ */
 
 export default function OverviewPage() {
   const { data: session, isPending } = authClient.useSession()
@@ -200,9 +152,9 @@ export default function OverviewPage() {
   const list = useMemo(() => appointments ?? [], [appointments])
 
   const favouritesRaw = useSyncExternalStore(
-    subscribeToFavourites,
-    readFavouritesSnapshot,
-    () => "[]"
+    subscribeFavourites,
+    getFavouritesSnapshot,
+    getServerFavouritesSnapshot
   )
   const favourites = useMemo(() => parseFavourites(favouritesRaw), [
     favouritesRaw,

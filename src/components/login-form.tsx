@@ -18,6 +18,9 @@ import { authClient } from "@/app/lib/auth-client"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { useState } from "react"
 import Image from "next/image"
+import { useRouter } from "next/navigation"
+
+
 
 export function LoginForm({
   className,
@@ -25,29 +28,45 @@ export function LoginForm({
 }: React.ComponentProps<"div">) {
 
   const [role, setRole] = useState("customer")
+const router = useRouter()
+ const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  event.preventDefault()
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
+  const formData = new FormData(event.currentTarget)
+  const email = formData.get("email") as string
+  const password = formData.get("password") as string
 
-    const formData = new FormData(event.currentTarget)
-    const email = formData.get("email") as string
-    const password = formData.get("password") as string
+  const { data, error } = await authClient.signIn.email({
+    email,
+    password,
+    rememberMe: true,
+  })
 
-    console.log({ email, password })
-
-    const { data, error } = await authClient.signIn.email({
-      email,
-      password,
-      rememberMe: true,
-      callbackURL: "/"
-    })
-
-    if (error) {
-      console.log(error.message)
-      return
-    }
+  if (error) {
+    console.log(error.message)
+    return
   }
 
+  const user = data.user as typeof data.user & { role?: string }
+
+  if (role === "admin" && user.role !== "admin") {
+    alert("You are not authorized as Admin")
+    await authClient.signOut()
+    return
+  }
+
+  if (role === "customer" && user.role !== "customer") {
+    alert("Please select the correct role")
+    await authClient.signOut()
+    return
+  }
+
+  if (user.role === "admin") {
+    router.push("/admin-dashboard")
+  } else if (user.role === "customer") {
+    router.push("/dashboard")
+  }
+}
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card className="overflow-hidden p-0">

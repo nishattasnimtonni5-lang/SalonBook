@@ -9,14 +9,16 @@ const db = client.db("SalonBook");
 
 export const auth = betterAuth({
 
-  user: {
-       additionalFields: {
-          role: {
-              type: "string",
-              input: false
-            } 
-        }
+user: {
+  additionalFields: {
+    role: {
+      type: "string",
+      required: false,
+      defaultValue: "customer",
+      input: false,
     },
+  },
+},
   emailAndPassword: { 
     enabled: true, 
   }, 

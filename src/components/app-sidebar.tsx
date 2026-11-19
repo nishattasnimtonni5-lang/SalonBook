@@ -55,7 +55,7 @@ const data = {
     },
     {
       title: "My offers",
-      url: "#",
+      url: "/dashboard/offers",
      
     },
     {
@@ -70,13 +70,15 @@ const data = {
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { data: session } = authClient.useSession()
 
-  const user = session
-    ? {
-        name: session.user.name,
-        email: session.user.email,
-        avatar: session.user.image ?? "",
-      }
-    : data.user
+ const user = session
+  ? {
+      name: session.user.name,
+      email: session.user.email,
+      avatar: session.user.image ?? "",
+    }
+  : data.user
+
+const navItems = data.navMain
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -84,7 +86,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
        
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={navItems} />
        
       </SidebarContent>
       <SidebarFooter>

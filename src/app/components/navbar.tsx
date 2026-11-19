@@ -1,11 +1,9 @@
 'use client'
-
 import { useState } from "react";
 import Link from "next/link";
 import { Menu, Scissors } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { authClient } from "../lib/auth-client";
-
 
 import {
   DropdownMenu,
@@ -32,10 +30,18 @@ const navLinks = [
 export default function Navbar() {
   const { data: session, isPending } = authClient.useSession();
   const [menuOpen, setMenuOpen] = useState(false);
-  const handleSignout=async()=>{
+
+  const userRole = session?.user
+    ? (session.user as typeof session.user & { role?: string }).role
+    : undefined;
+
+  const dashboardLink =
+    userRole === "admin" ? "/admin-dashboard" : "/dashboard";
+
+  const handleSignout = async () => {
     await authClient.signOut();
-  }
-  console.log(session?.user?.image);
+  };
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-black/[.08] bg-white/80 backdrop-blur dark:border-white/[.145] dark:bg-black/80">
       <nav className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-4 px-6">
@@ -64,57 +70,56 @@ export default function Navbar() {
           ))}
         </ul>
 
-{session ? (
- <DropdownMenu>
-  <DropdownMenuTrigger render={<button />}>
-    <Avatar>
-      <AvatarImage
-        src={session.user.image || ""}
-        alt={session.user.name}
-        onError={() => console.log("Google image failed to load")}
-      />
-      <AvatarFallback>
-        {session.user.name?.charAt(0)}
-      </AvatarFallback>
-    </Avatar>
-  </DropdownMenuTrigger>
+        {session ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger render={<button />}>
+              <Avatar>
+                <AvatarImage
+                  src={session.user.image || ""}
+                  alt={session.user.name}
+                  onError={() => console.log("Google image failed to load")}
+                />
+                <AvatarFallback>
+                  {session.user.name?.charAt(0)}
+                </AvatarFallback>
+              </Avatar>
+            </DropdownMenuTrigger>
 
-  <DropdownMenuContent align="end">
-    <DropdownMenuGroup>
-      <DropdownMenuLabel>My Account</DropdownMenuLabel>
-      <DropdownMenuSeparator />
-      <DropdownMenuItem>Profile</DropdownMenuItem>
-      <DropdownMenuItem ><Link href="/dashboard">Dashboard</Link></DropdownMenuItem>
-      <DropdownMenuItem>Settings</DropdownMenuItem>
-    </DropdownMenuGroup>
+            <DropdownMenuContent align="end">
+              <DropdownMenuGroup>
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>Profile</DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Link href={dashboardLink}>Dashboard</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem>Settings</DropdownMenuItem>
+              </DropdownMenuGroup>
 
-    <DropdownMenuSeparator />
+              <DropdownMenuSeparator />
 
-    <DropdownMenuItem onClick={handleSignout}>
-      Sign Out
-    </DropdownMenuItem>
-  </DropdownMenuContent>
-</DropdownMenu>
-) : (
+              <DropdownMenuItem onClick={handleSignout}>
+                Sign Out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Link
+              href="/signin"
+              className="hidden h-9 items-center justify-center px-4 text-sm font-medium text-zinc-600 transition-colors hover:text-black dark:text-zinc-400 dark:hover:text-zinc-50 sm:flex"
+            >
+              Sign In
+            </Link>
+            <Link
+              href="/signup"
+              className="flex h-9 items-center justify-center rounded-full bg-rose-600 px-5 text-sm font-medium text-white transition-colors hover:bg-rose-700"
+            >
+              Sign Up
+            </Link>
+          </div>
+        )}
 
-
-        <div className="flex items-center gap-2 sm:gap-3">
-          <Link
-            href="/signin"
-            className="hidden h-9 items-center justify-center px-4 text-sm font-medium text-zinc-600 transition-colors hover:text-black dark:text-zinc-400 dark:hover:text-zinc-50 sm:flex"
-          >
-            Sign In
-          </Link>
-          <Link
-            href="/signup"
-            className="flex h-9 items-center justify-center rounded-full bg-rose-600 px-5 text-sm font-medium text-white transition-colors hover:bg-rose-700"
-          >
-            Sign Up
-          </Link>
-        </div>
-)}
-
-        {/* Mobile menu */}
         <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
           <SheetTrigger
             render={<button />}
@@ -123,6 +128,7 @@ export default function Navbar() {
           >
             <Menu className="size-5" />
           </SheetTrigger>
+
           <SheetContent side="right">
             <SheetHeader>
               <SheetTitle className="flex items-center gap-2">
@@ -144,6 +150,16 @@ export default function Navbar() {
                   {link.label}
                 </Link>
               ))}
+
+              {session && (
+                <Link
+                  href={dashboardLink}
+                  onClick={() => setMenuOpen(false)}
+                  className="rounded-lg px-3 py-2.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-muted hover:text-black dark:text-zinc-300 dark:hover:text-zinc-50"
+                >
+                  Dashboard
+                </Link>
+              )}
             </nav>
 
             {session ? (
@@ -181,4 +197,5 @@ export default function Navbar() {
       </nav>
     </header>
   );
+
 }
