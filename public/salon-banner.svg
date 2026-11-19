@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="bannerBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fff7ed"/>
+      <stop offset="45%" stop-color="#ffe4e6"/>
+      <stop offset="100%" stop-color="#fae8ff"/>
+    </linearGradient>
+    <radialGradient id="glowRose" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fda4af" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#fda4af" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowViolet" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#c4b5fd" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#c4b5fd" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowAmber" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fde68a" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#fde68a" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1600" height="900" fill="url(#bannerBg)"/>
+
+  <!-- Soft colour glows -->
+  <circle cx="1290" cy="190" r="330" fill="url(#glowRose)"/>
+  <circle cx="280" cy="700" r="310" fill="url(#glowViolet)"/>
+  <circle cx="780" cy="110" r="270" fill="url(#glowAmber)"/>
+
+  <!-- Scissors line art (top right) -->
+  <g transform="translate(1345 265) rotate(24)" stroke="#be123c" stroke-width="15" fill="none" stroke-linecap="round" opacity="0.16">
+    <circle cx="-54" cy="92" r="48"/>
+    <circle cx="54" cy="92" r="48"/>
+    <path d="M-36,56 L98,-118"/>
+    <path d="M36,56 L-98,-118"/>
+    <circle cx="0" cy="9" r="9" fill="#be123c" stroke="none"/>
+  </g>
+
+  <!-- Comb line art (left) -->
+  <g transform="translate(225 375) rotate(-16)" fill="#9f1239" opacity="0.13">
+    <rect x="-130" y="-112" width="260" height="46" rx="22"/>
+    <rect x="-125" y="-60" width="22" height="122" rx="11"/>
+    <rect x="-87" y="-60" width="22" height="122" rx="11"/>
+    <rect x="-49" y="-60" width="22" height="122" rx="11"/>
+    <rect x="-11" y="-60" width="22" height="122" rx="11"/>
+    <rect x="27" y="-60" width="22" height="122" rx="11"/>
+    <rect x="65" y="-60" width="22" height="122" rx="11"/>
+    <rect x="103" y="-60" width="22" height="122" rx="11"/>
+  </g>
+
+  <!-- Lipstick line art (bottom left) -->
+  <g transform="translate(150 745) rotate(-8)" fill="#be123c" opacity="0.14">
+    <rect x="-40" y="0" width="80" height="98" rx="12"/>
+    <rect x="-34" y="-48" width="68" height="54" rx="8"/>
+    <path d="M-32,-48 L-32,-98 L18,-122 Q34,-129 34,-113 L34,-48 Z"/>
+  </g>
+
+  <!-- Nail polish line art (right, mid) -->
+  <g transform="translate(1430 565) rotate(14)" fill="#7c3aed" opacity="0.13">
+    <rect x="-46" y="-16" width="92" height="116" rx="16"/>
+    <rect x="-22" y="-112" width="44" height="96" rx="12"/>
+    <rect x="-30" y="-130" width="60" height="24" rx="10"/>
+  </g>
+
+  <!-- Sparkles -->
+  <g fill="#be123c" opacity="0.22">
+    <path transform="translate(560 150) scale(1.1)" d="M0,-30 Q5,-5 30,0 Q5,5 0,30 Q-5,5 -30,0 Q-5,-5 0,-30 Z"/>
+    <path transform="translate(1080 480) scale(0.9)" d="M0,-30 Q5,-5 30,0 Q5,5 0,30 Q-5,5 -30,0 Q-5,-5 0,-30 Z"/>
+    <path transform="translate(410 590) scale(0.75)" d="M0,-30 Q5,-5 30,0 Q5,5 0,30 Q-5,5 -30,0 Q-5,-5 0,-30 Z"/>
+    <path transform="translate(920 70) scale(0.7)" d="M0,-30 Q5,-5 30,0 Q5,5 0,30 Q-5,5 -30,0 Q-5,-5 0,-30 Z"/>
+    <path transform="translate(1520 130) scale(0.85)" d="M0,-30 Q5,-5 30,0 Q5,5 0,30 Q-5,5 -30,0 Q-5,-5 0,-30 Z"/>
+  </g>
+
+  <!-- Gentle waves -->
+  <path d="M0,655 C260,598 480,718 760,672 C1060,626 1320,738 1600,664 L1600,900 L0,900 Z" fill="#ffffff" opacity="0.5"/>
+  <path d="M0,762 C300,714 560,814 860,774 C1160,734 1380,826 1600,782 L1600,900 L0,900 Z" fill="#ffffff" opacity="0.75"/>
+</svg>
