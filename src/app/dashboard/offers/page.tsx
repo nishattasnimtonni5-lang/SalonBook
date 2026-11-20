@@ -35,30 +35,69 @@ const OFFERS_API_URL =
 /** Keep only well-formed offers (guards against malformed entries). */
 function filterValidOffers(data: unknown): Offer[] {
   if (!Array.isArray(data)) return []
-  return data.filter(
-    (item): item is Offer =>
-      typeof item === "object" &&
-      item !== null &&
-      typeof (item as Offer)._id === "string" &&
-      typeof (item as Offer).title === "string" &&
-      typeof (item as Offer).active === "boolean"
-  )
+  return data.flatMap((item) => {
+    if (typeof item !== "object" || item === null) return []
+
+    const record = item as Record<string, unknown>
+    if (typeof record._id !== "string" || typeof record.title !== "string") {
+      return []
+    }
+
+    const status =
+      typeof record.status === "string"
+        ? record.status
+        : typeof record.active === "boolean"
+          ? record.active
+            ? "active"
+            : "inactive"
+          : "inactive"
+
+    return [{
+      _id: record._id,
+      title: record.title,
+      description: typeof record.description === "string" ? record.description : "",
+      discountType:
+        record.discountType === "fixed" ? "fixed" : "percentage",
+      discountValue:
+        typeof record.discountValue === "number" ? record.discountValue : 0,
+      applicableService:
+        typeof record.applicableService === "string"
+          ? record.applicableService
+          : typeof record.category === "string"
+            ? record.category
+            : "All services",
+      couponCode:
+        typeof record.couponCode === "string"
+          ? record.couponCode
+          : typeof record.promoCode === "string"
+            ? record.promoCode
+            : "",
+      expiryDate: typeof record.expiryDate === "string" ? record.expiryDate : "",
+      minBookingAmount:
+        typeof record.minBookingAmount === "number" ? record.minBookingAmount : 0,
+      terms: typeof record.terms === "string" ? record.terms : "",
+      active: status === "active",
+      createdAt: typeof record.createdAt === "string" ? record.createdAt : "",
+      status,
+      promoCode:
+        typeof record.promoCode === "string"
+          ? record.promoCode
+          : typeof record.couponCode === "string"
+            ? record.couponCode
+            : "",
+      image: typeof record.image === "string" ? record.image : undefined,
+      category: typeof record.category === "string" ? record.category : undefined,
+    }]
+  })
 }
 
-// Uppercase name required by the react-hooks rule; the default export is
-// still what Next.js renders for /dashboard/offers.
 const MyOffersPage = () => {
   const [offers, setOffers] = useState<Offer[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [copiedId, setCopiedId] = useState<string | null>(null)
 
-  // Pure fetch (no setState) so the effect can kick it off without
-  // triggering the set-state-in-effect lint rule; state updates happen
-  // in the async callbacks below, exactly like MyAppointmentsPage.
   const fetchOffers = useCallback(async (): Promise<Offer[]> => {
-    // Public endpoint: the API itself only returns active + unexpired
-    // offers, so customers can never see a deactivated one.
     const response = await fetch(OFFERS_API_URL, { cache: "no-store" })
     if (!response.ok) {
       throw new Error("Offers could not be loaded.")
@@ -116,13 +155,16 @@ const MyOffersPage = () => {
   }
 
   const copyCoupon = async (offer: Offer) => {
+    const promoCode = offer.promoCode || offer.couponCode
+    if (!promoCode) return
+
     try {
-      await navigator.clipboard.writeText(offer.couponCode)
+      await navigator.clipboard.writeText(promoCode)
     } catch {
       // Clipboard blocked (non-secure context): temporary textarea fallback
       // so the button still works; the code is visible on the card anyway.
       const textarea = document.createElement("textarea")
-      textarea.value = offer.couponCode
+      textarea.value = promoCode
       textarea.style.position = "fixed"
       textarea.style.opacity = "0"
       document.body.appendChild(textarea)
@@ -214,6 +256,20 @@ const MyOffersPage = () => {
               key={offer._id}
               className="group h-full overflow-hidden pt-0 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-rose-500/10"
             >
+              <div className="relative h-48 w-full overflow-hidden">
+                {offer.image ? (
+                  <img
+                    src={offer.image}
+                    alt={offer.title}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full items-center justify-center bg-muted">
+                    No image available
+                  </div>
+                )}
+              </div>
+
               {/* Rose gradient header with the discount label */}
               <div className="relative overflow-hidden bg-gradient-to-br from-rose-500 via-rose-500 to-pink-500 px-5 py-5 text-white">
                 <div
@@ -254,9 +310,9 @@ const MyOffersPage = () => {
                 {/* Coupon code + copy button */}
                 <div className="flex items-center justify-between gap-2 rounded-xl border border-dashed border-rose-300 bg-rose-50 px-3 py-2.5 dark:border-rose-800 dark:bg-rose-950/30">
                   <span className="truncate font-mono text-sm font-bold tracking-widest text-rose-600 dark:text-rose-400">
-                    {offer.couponCode || "—"}
+                    {offer.promoCode || "—"}
                   </span>
-                  {offer.couponCode ? (
+                  {offer.promoCode ? (
                     <Button
                       type="button"
                       size="sm"

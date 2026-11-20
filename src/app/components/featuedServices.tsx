@@ -63,7 +63,7 @@ function getExtras(service: ApiService) {
 
 async function getFeaturedServices(): Promise<ApiService[]> {
   try {
-    const res = await fetch("http://localhost:8000/services", {
+    const res = await fetch("http://localhost:8000/services/featured", {
       cache: "no-store",
     });
 

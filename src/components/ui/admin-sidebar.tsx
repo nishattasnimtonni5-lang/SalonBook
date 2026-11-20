@@ -27,7 +27,7 @@ const data = {
   navMain: [
     {
       title: "Overview",
-      url: "#",
+      url: "/admin-dashboard",
      
       isActive: true,
       
@@ -40,23 +40,19 @@ const data = {
     },
     {
       title: "Manage Appointments",
-      url: "/dashboard/my-appointments",
+      url: "/admin-dashboard/manage-appointments",
       
     },
     {
       title: "Manage offers",
-      url: "/dashboard/booking-history",
+      url: "/admin-dashboard/manage-offers",
      
     },
+
     {
-      title: "Favourites",
-      url: "/dashboard/favourites",
-     
-    },
-    {
-      title: "Reports",
-      url: "/dashboard/offers",
-     
+      title: "Manage Reports",
+      url: "/admin-dashboard/manage-reports",
+
     },
     
   ],

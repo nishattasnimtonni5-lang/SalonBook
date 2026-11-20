@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import {useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -21,10 +21,103 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import Image from "next/image";
+import { Field, FieldLabel } from "@/components/ui/field";
 
 export default function ManageServicesPage() {
   const [featured, setFeatured] = useState(false);
+ const [imageUrl, setImageUrl] = useState("")
+  const [uploading, setUploading] = useState(false)
+const [status, setStatus] = useState("active");
+const [submitting, setSubmitting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const image = e.target.files?.[0]
+
+    if (!image) return
+
+    const formData = new FormData()
+    formData.append("image", image)
+
+    setUploading(true)
+
+    try {
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      })
+      const data: { url?: string; error?: string } = await res.json()
+
+      if (!res.ok || !data.url) {
+        alert(data.error || "Image upload failed")
+        return
+      }
+
+      setImageUrl(data.url)
+    } catch (error) {
+      console.log(error)
+      alert("Something went wrong")
+    } finally {
+      setUploading(false)
+    }
+  }
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+
+  if (!imageUrl) {
+    alert("Please upload a service image first.");
+    return;
+  }
+
+  const formData = new FormData(e.currentTarget);
+
+  const serviceData = {
+    name: formData.get("name"),
+    category: formData.get("category"),
+    price: Number(formData.get("price")),
+    duration: Number(formData.get("duration")),
+    description: formData.get("description"),
+    image: imageUrl,
+    featured,
+    status,
+  };
+
+  setSubmitting(true);
+
+  try {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/services`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(serviceData),
+      }
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.message || "Failed to add service");
+      return;
+    }
+
+    alert("Service added successfully!");
+    e.currentTarget.reset();
+    const form = e.currentTarget;
+    form.reset();
+    setImageUrl("");
+    setFeatured(false);
+    setStatus("active");
+  } catch (error) {
+    console.log(error);
+    alert("Something went wrong!");
+  } finally {
+    setSubmitting(false);
+  }
+};
   return (
     <div className="space-y-6 p-6">
       <div>
@@ -43,7 +136,7 @@ export default function ManageServicesPage() {
         </CardHeader>
 
         <CardContent>
-          <form className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
               <Label htmlFor="name">Service Name</Label>
               <Input
@@ -102,14 +195,38 @@ export default function ManageServicesPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="image">Image URL</Label>
-              <Input
-                id="image"
-                name="image"
-                type="url"
-                placeholder="https://example.com/image.jpg"
-                required
-              />
+        <Field>
+                <div className="flex items-center">
+         <FieldLabel htmlFor="image">Profile image</FieldLabel>
+                </div>
+
+                <Input
+                  type="file"
+                  accept="image/*"
+                  ref={fileInputRef}
+                  onChange={handleImageUpload}
+                  className="hidden"
+                />
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                >
+                  {uploading ? "Uploading..." : "Upload Image"}
+                </Button>
+
+                {imageUrl && (
+                  <Image
+                    src={imageUrl}
+                    alt="Profile"
+                    width={48}
+                    height={48}
+                    className="h-12 w-12 rounded-full object-cover"
+                  />
+                )}
+              </Field>
             </div>
 
             <div className="flex items-center gap-3">
@@ -127,23 +244,27 @@ export default function ManageServicesPage() {
 
             <div className="space-y-2">
               <Label>Status</Label>
-              <Select defaultValue="active" name="status">
-                <SelectTrigger>
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Available</SelectItem>
-                  <SelectItem value="inactive">Unavailable</SelectItem>
-                </SelectContent>
-              </Select>
+              <Select
+  value={status}
+                onValueChange={(value) => setStatus(value ?? "active")}
+>
+  <SelectTrigger>
+    <SelectValue placeholder="Select status" />
+  </SelectTrigger>
+  <SelectContent>
+    <SelectItem value="active">Available</SelectItem>
+    <SelectItem value="inactive">Unavailable</SelectItem>
+  </SelectContent>
+</Select>
             </div>
 
             <Button
-              type="submit"
-              className="w-full bg-rose-600 hover:bg-rose-700"
-            >
-              Add Service
-            </Button>
+  type="submit"
+  disabled={submitting || uploading}
+  className="w-full bg-rose-600 hover:bg-rose-700"
+>
+  {submitting ? "Adding Service..." : "Add Service"}
+</Button>
           </form>
         </CardContent>
       </Card>

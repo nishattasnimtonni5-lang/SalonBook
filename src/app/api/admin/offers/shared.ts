@@ -1,15 +1,6 @@
 import { headers } from "next/headers"
 import { auth } from "@/app/lib/auth"
 
-/**
- * Server-side helpers for the admin Offers API routes.
- *
- * Every route that manages offers must first pass `requireAdmin()`:
- * the better-auth session is read from the request headers and the
- * role stored in the database is checked here — NOT trusted from the
- * client. Express then re-checks the shared INTERNAL_API_SECRET, so
- * admin permission is enforced on both server layers.
- */
 
 const EXPRESS_BASE = process.env.EXPRESS_API_URL ?? "http://localhost:8000"
 
@@ -47,7 +38,7 @@ type OffersApiResponse = {
   data: Record<string, unknown>
 }
 
-/** Forward an authenticated admin request to the Express API. */
+
 export async function callOffersApi(
   path: string,
   init: { method: "GET" | "POST" | "PATCH" | "DELETE"; body?: unknown }

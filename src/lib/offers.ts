@@ -37,6 +37,10 @@ export type Offer = {
   terms: string
   active: boolean
   createdAt: string
+  status?: "active" | "inactive" | string
+  promoCode?: string
+  image?: string
+  category?: string
 }
 
 export const OFFER_VALIDATION = {
