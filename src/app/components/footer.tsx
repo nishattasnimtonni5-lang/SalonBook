@@ -72,9 +72,9 @@ export default function Footer() {
   return (
     <footer className="border-t border-white/10 bg-zinc-950 text-zinc-400">
       <div className="mx-auto w-full max-w-6xl px-6 py-14">
-        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 md:grid-cols-4 md:gap-6">
           {/* Brand */}
-          <div className="sm:col-span-2 lg:col-span-1">
+          <div>
             <Link href="/" className="flex items-center gap-2">
               <span className="flex size-8 items-center justify-center rounded-full bg-rose-600 text-white">
                 <Scissors className="size-4" />
@@ -108,7 +108,7 @@ export default function Footer() {
             <h3 className="text-sm font-semibold tracking-wide text-white uppercase">
               Quick Links
             </h3>
-            <ul className="mt-4 space-y-3 text-sm">
+            <ul className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm">
               {quickLinks.map((link) => (
                 <li key={link.href}>
                   <Link
@@ -127,7 +127,7 @@ export default function Footer() {
             <h3 className="text-sm font-semibold tracking-wide text-white uppercase">
               Contact Us
             </h3>
-            <ul className="mt-4 space-y-3 text-sm">
+            <ul className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm">
               <li>
                 <a
                   href="tel:+15551234567"
@@ -162,7 +162,7 @@ export default function Footer() {
             <h3 className="text-sm font-semibold tracking-wide text-white uppercase">
               Opening Hours
             </h3>
-            <ul className="mt-4 space-y-3 text-sm">
+            <ul className="mt-4 flex flex-wrap gap-x-5 gap-y-3 text-sm">
               {openingHours.map((slot) => (
                 <li key={slot.days} className="flex items-start gap-2.5">
                   <Clock className="mt-0.5 size-4 shrink-0 text-rose-400" />
