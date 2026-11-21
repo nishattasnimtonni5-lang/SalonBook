@@ -64,7 +64,17 @@ const router = useRouter()
   if (user.role === "admin") {
     router.push("/admin-dashboard")
   } else if (user.role === "customer") {
-    router.push("/dashboard")
+    // Return the customer to the page they were trying to use (e.g. the
+    // service details page) when one was supplied by the caller.
+    const rawCallback = new URLSearchParams(window.location.search).get(
+      "callbackURL",
+    )
+    const callbackURL =
+      rawCallback && rawCallback.startsWith("/") && !rawCallback.startsWith("//")
+        ? rawCallback
+        : null
+
+    router.push(callbackURL ?? "/dashboard")
   }
 }
   return (

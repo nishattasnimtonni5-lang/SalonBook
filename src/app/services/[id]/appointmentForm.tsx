@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter, usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Calendar } from "@/components/ui/calendar"
@@ -21,8 +22,10 @@ export default function AppointmentForm({ service }: AppointmentFormProps) {
   const [selectedTime, setSelectedTime] = useState("")
 const [loading, setLoading] = useState(false)
   // Attach the signed-in customer so booking history can be shown
-  // per customer. Booking still works without a session (as before).
+  // per customer. Visitors are asked to sign in when they book.
   const { data: session } = authClient.useSession()
+  const router = useRouter()
+  const pathname = usePathname()
   const timeSlots = [
     "10:00 AM",
     "11:00 AM",
@@ -33,10 +36,28 @@ const [loading, setLoading] = useState(false)
     "05:00 PM",
   ]
 const handleBooking = async () => {
-  if (!selectedDate || !selectedTime) return
-
   try {
     setLoading(true)
+
+    // Customers must be authenticated to submit an appointment request.
+    // Fall back to a fresh lookup in case the cached session hook has
+    // not resolved yet.
+    const currentUser =
+      session ?? (await authClient.getSession()).data
+
+    if (!currentUser?.user) {
+      router.push(`/signin?callbackURL=${encodeURIComponent(pathname)}`)
+      return
+    }
+
+    const role = (currentUser.user as { role?: string }).role
+
+    if (role === "admin") {
+      alert("Admins are not allowed to submit customer appointment requests.")
+      return
+    }
+
+    if (!selectedDate || !selectedTime) return
 
     const response = await fetch("http://localhost:8000/appointments", {
       method: "POST",
@@ -51,9 +72,9 @@ const handleBooking = async () => {
         duration: service.duration,
         date: selectedDate.toISOString().split("T")[0],
         time: selectedTime,
-        userId: session?.user?.id ?? "",
-        customerName: session?.user?.name ?? "",
-        customerEmail: session?.user?.email ?? "",
+        userId: currentUser.user.id ?? "",
+        customerName: currentUser.user.name ?? "",
+        customerEmail: currentUser.user.email ?? "",
       }),
     })
 

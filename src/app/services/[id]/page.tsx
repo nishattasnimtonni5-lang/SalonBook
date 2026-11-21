@@ -1,13 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { ArrowLeft, CalendarCheck, Clock, Tag } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { services, type Service } from "@/app/data/services";
 import AppointmentForm from "./appointmentForm";
-import { auth } from "@/app/lib/auth";
-import { headers } from "next/headers";
 
 type ApiService = {
   _id: string;
@@ -133,14 +131,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 const ServiceDetailsPage = async ({ params }: PageProps) => {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  if (!session) {
-    redirect(`/signin?callbackURL=${encodeURIComponent(`/services/${(await params).id}`)}`);
-  }
-
+  // The service details page is public — everyone can browse it.
+  // The booking form itself asks the visitor to sign in when needed.
   const { id } = await params;
   const service = await getService(decodeURIComponent(id));
 
