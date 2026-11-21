@@ -25,6 +25,7 @@ import {
 const navLinks = [
   { href: "/", label: "Home" },
   { href: "/services", label: "Browse Services" },
+  { href: "/offers", label: "Offers" },
 ];
 
 export default function Navbar() {

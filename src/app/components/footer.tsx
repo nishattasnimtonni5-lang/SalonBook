@@ -4,6 +4,7 @@ import { Clock, Mail, MapPin, Phone, Scissors } from "lucide-react";
 const quickLinks = [
   { href: "/", label: "Home" },
   { href: "/services", label: "Browse Services" },
+  { href: "/offers", label: "Offers" },
   { href: "/signin", label: "Sign In" },
   { href: "/signup", label: "Sign Up" },
 ];

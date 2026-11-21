@@ -210,3 +210,67 @@ export function formatExpiryDate(value: string): string {
     day: "numeric",
   })
 }
+
+/**
+ * Normalize a raw `/offers` payload into well-formed Offer objects,
+ * tolerating both the Express shape (couponCode/applicableService/active)
+ * and the admin form shape (promoCode/category/status). Malformed entries
+ * are dropped so callers only ever render valid records.
+ */
+export function filterValidOffers(data: unknown): Offer[] {
+  if (!Array.isArray(data)) return []
+  return data.flatMap((item) => {
+    if (typeof item !== "object" || item === null) return []
+
+    const record = item as Record<string, unknown>
+    if (typeof record._id !== "string" || typeof record.title !== "string") {
+      return []
+    }
+
+    const status =
+      typeof record.status === "string"
+        ? record.status
+        : typeof record.active === "boolean"
+          ? record.active
+            ? "active"
+            : "inactive"
+          : "inactive"
+
+    return [{
+      _id: record._id,
+      title: record.title,
+      description: typeof record.description === "string" ? record.description : "",
+      discountType:
+        record.discountType === "fixed" ? "fixed" : "percentage",
+      discountValue:
+        typeof record.discountValue === "number" ? record.discountValue : 0,
+      applicableService:
+        typeof record.applicableService === "string"
+          ? record.applicableService
+          : typeof record.category === "string"
+            ? record.category
+            : "All services",
+      couponCode:
+        typeof record.couponCode === "string"
+          ? record.couponCode
+          : typeof record.promoCode === "string"
+            ? record.promoCode
+            : "",
+      expiryDate: typeof record.expiryDate === "string" ? record.expiryDate : "",
+      minBookingAmount:
+        typeof record.minBookingAmount === "number" ? record.minBookingAmount : 0,
+      terms: typeof record.terms === "string" ? record.terms : "",
+      active: status === "active",
+      createdAt: typeof record.createdAt === "string" ? record.createdAt : "",
+      status,
+      promoCode:
+        typeof record.promoCode === "string"
+          ? record.promoCode
+          : typeof record.couponCode === "string"
+            ? record.couponCode
+            : "",
+      image: typeof record.image === "string" ? record.image : undefined,
+      category: typeof record.category === "string" ? record.category : undefined,
+    }]
+  })
+}

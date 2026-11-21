@@ -23,6 +23,7 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty"
 import {
+  filterValidOffers,
   formatDiscountLabel,
   formatExpiryDate,
   isOfferExpired,
@@ -31,65 +32,6 @@ import {
 
 const OFFERS_API_URL =
   process.env.NEXT_PUBLIC_OFFERS_API_URL ?? "http://localhost:8000/offers"
-
-/** Keep only well-formed offers (guards against malformed entries). */
-function filterValidOffers(data: unknown): Offer[] {
-  if (!Array.isArray(data)) return []
-  return data.flatMap((item) => {
-    if (typeof item !== "object" || item === null) return []
-
-    const record = item as Record<string, unknown>
-    if (typeof record._id !== "string" || typeof record.title !== "string") {
-      return []
-    }
-
-    const status =
-      typeof record.status === "string"
-        ? record.status
-        : typeof record.active === "boolean"
-          ? record.active
-            ? "active"
-            : "inactive"
-          : "inactive"
-
-    return [{
-      _id: record._id,
-      title: record.title,
-      description: typeof record.description === "string" ? record.description : "",
-      discountType:
-        record.discountType === "fixed" ? "fixed" : "percentage",
-      discountValue:
-        typeof record.discountValue === "number" ? record.discountValue : 0,
-      applicableService:
-        typeof record.applicableService === "string"
-          ? record.applicableService
-          : typeof record.category === "string"
-            ? record.category
-            : "All services",
-      couponCode:
-        typeof record.couponCode === "string"
-          ? record.couponCode
-          : typeof record.promoCode === "string"
-            ? record.promoCode
-            : "",
-      expiryDate: typeof record.expiryDate === "string" ? record.expiryDate : "",
-      minBookingAmount:
-        typeof record.minBookingAmount === "number" ? record.minBookingAmount : 0,
-      terms: typeof record.terms === "string" ? record.terms : "",
-      active: status === "active",
-      createdAt: typeof record.createdAt === "string" ? record.createdAt : "",
-      status,
-      promoCode:
-        typeof record.promoCode === "string"
-          ? record.promoCode
-          : typeof record.couponCode === "string"
-            ? record.couponCode
-            : "",
-      image: typeof record.image === "string" ? record.image : undefined,
-      category: typeof record.category === "string" ? record.category : undefined,
-    }]
-  })
-}
 
 const MyOffersPage = () => {
   const [offers, setOffers] = useState<Offer[]>([])
