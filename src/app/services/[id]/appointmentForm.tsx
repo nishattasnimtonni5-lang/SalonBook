@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Calendar } from "@/components/ui/calendar"
 import { authClient } from "@/app/lib/auth-client"
+import { API_BASE_URL } from "@/app/lib/api/config"
 
 type AppointmentFormProps = {
   service: {
@@ -60,9 +61,9 @@ const handleBooking = async () => {
     if (!selectedDate || !selectedTime) return
 
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/bookings/create-checkout-session`,
-      {
-      method: "POST",
+      `${API_BASE_URL}/bookings/create-checkout-session`,
+      {  
+           method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
