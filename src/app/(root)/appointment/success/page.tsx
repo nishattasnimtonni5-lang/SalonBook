@@ -3,7 +3,7 @@ import React from 'react';
 const SuccessPage = () => {
     return (
         <div>
-            Success page
+            Thank you for your payment.
         </div>
     );
 };
