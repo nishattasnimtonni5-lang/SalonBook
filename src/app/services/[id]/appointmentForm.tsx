@@ -59,7 +59,9 @@ const handleBooking = async () => {
 
     if (!selectedDate || !selectedTime) return
 
-    const response = await fetch("http://localhost:8000/appointments", {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/bookings/create-checkout-session`,
+      {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -76,12 +78,23 @@ const handleBooking = async () => {
         customerName: currentUser.user.name ?? "",
         customerEmail: currentUser.user.email ?? "",
       }),
-    })
+      },
+    )
 
     const data = await response.json()
 
     if (response.ok) {
-      alert("Appointment booked successfully!")
+      const redirectUrl =
+        data?.data?.redirectUrl ??
+        data?.redirectUrl ??
+        data?.url
+
+      if (!redirectUrl) {
+        alert("Stripe checkout URL was not returned by the server.")
+        return
+      }
+
+      window.location.assign(redirectUrl)
     } else {
       alert(data.message || "Booking failed!")
     }
