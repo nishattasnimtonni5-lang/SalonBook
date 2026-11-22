@@ -28,6 +28,7 @@ type ServiceDetail = {
   price: number;
   duration: string;
   image: string;
+  status?: string;
 };
 
 // The API doesn't return duration/description yet — reuse the same fallback
@@ -74,11 +75,12 @@ function fromApi(api: ApiService): ServiceDetail {
     price: api.price ?? 0,
     duration: api.duration ?? fallback.duration,
     image: api.image ?? "/services/haircut.svg",
+    status: api.status,
   };
 }
 
 function fromLocal(service: Service): ServiceDetail {
-  return { ...service };
+  return { ...service, status: (service as any).status };
 }
 
 async function getApiServices(): Promise<ApiService[]> {

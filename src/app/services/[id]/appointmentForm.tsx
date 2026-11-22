@@ -16,6 +16,7 @@ type AppointmentFormProps = {
     image: string
     price: number
     duration: string
+    status?: string
   }
 }
 
@@ -55,7 +56,15 @@ const handleBooking = async () => {
 
     const role = (currentUser.user as { role?: string }).role
 
-    if (role === "admin") {
+    if (service.status && service.status !== "active") {
+      toast.add({
+        id: bookingToastId,
+        type: "error",
+        title: "Booking not available",
+        description: "This service is currently inactive.",
+      })
+      return
+    }
       toast.add({
         id: bookingToastId,
         type: "error",
@@ -76,9 +85,26 @@ const handleBooking = async () => {
       return
     }
 
-    toast.add({
-      id: bookingToastId,
-      type: "loading",
+    // Prevent duplicate booking for the same service, date, and time.
+    const existingRes = await fetch(`${API_BASE_URL}/appointments`, { cache: "no-store" });
+    const existingData = await existingRes.json().catch(() => []);
+    const existingList = Array.isArray(existingData) ? existingData : existingData?.appointments ?? [];
+    const duplicate = existingList.some(
+      (a: any) =>
+        a.serviceId === service.id &&
+        a.date === selectedDate.toISOString().split("T")[0] &&
+        a.time === selectedTime,
+    );
+    if (duplicate) {
+      toast.add({
+        id: bookingToastId,
+        type: "error",
+        title: "Slot already booked",
+        description: "This date and time is already taken. Please choose another slot.",
+      });
+      setLoading(false);
+      return;
+    }
       title: "Booking your appointment…",
       description: "Please wait while we confirm your appointment details.",
     })
@@ -180,7 +206,7 @@ const handleBooking = async () => {
 </div>
 <Button
   className="w-full"
-  disabled={!selectedDate || !selectedTime || loading}
+  disabled={!selectedDate || !selectedTime || loading || service.status !== "active" && !!service.status}
   onClick={handleBooking}
 >
   {loading ? "Booking..." : "Book Appointment"}
