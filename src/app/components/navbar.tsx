@@ -70,6 +70,14 @@ export default function Navbar() {
               </Link>
             </li>
           ))}
+          <li>
+            <Link
+              href={session ? dashboardLink : "/signin?callbackURL=/dashboard"}
+              className="text-sm font-medium text-zinc-600 transition-colors hover:text-black dark:text-zinc-400 dark:hover:text-zinc-50"
+            >
+              Dashboard
+            </Link>
+          </li>
         </ul>
 
         {session ? (
@@ -153,15 +161,13 @@ export default function Navbar() {
                 </Link>
               ))}
 
-              {session && (
-                <Link
-                  href={dashboardLink}
-                  onClick={() => setMenuOpen(false)}
-                  className="rounded-lg px-3 py-2.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-muted hover:text-black dark:text-zinc-300 dark:hover:text-zinc-50"
-                >
-                  Dashboard
-                </Link>
-              )}
+              <Link
+                href={session ? dashboardLink : "/signin?callbackURL=/dashboard"}
+                onClick={() => setMenuOpen(false)}
+                className="rounded-lg px-3 py-2.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-muted hover:text-black dark:text-zinc-300 dark:hover:text-zinc-50"
+              >
+                Dashboard
+              </Link>
             </nav>
 
             {session ? (

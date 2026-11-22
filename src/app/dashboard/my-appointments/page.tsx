@@ -230,6 +230,10 @@ export default function MyAppointmentsPage() {
   const handleCancel = async () => {
     if (!pendingCancel || !userId) return
     const appointment = pendingCancel
+    if (appointment.status.toLowerCase() !== "pending") {
+      setPendingCancel(null)
+      return
+    }
     const cancelToastId = "cancel-appointment"
     try {
       setCancellingId(appointment._id)
@@ -263,9 +267,7 @@ export default function MyAppointmentsPage() {
         prev?.map((item) => (item._id === appointment._id ? next : item)) ??
         prev
       )
-      setDetails((prev) =>
-        prev && prev._id === appointment._id ? next : prev
-      )
+      setDetails(null)
       toast.add({
         id: cancelToastId,
         type: "success",
@@ -291,11 +293,21 @@ export default function MyAppointmentsPage() {
   }
 
   const canCancel = (status: string) =>
-    status === "pending" || status === "confirmed"
+    status.toLowerCase() === "pending"
+
+  const canPay = (appointment: Appointment) =>
+    appointment.status.toLowerCase() === "confirmed" && !isPaid(appointment)
 
   const handlePay = async () => {
     if (!pendingPay) return
     const appointment = pendingPay
+    if (
+      appointment.status.toLowerCase() !== "confirmed" ||
+      isPaid(appointment)
+    ) {
+      setPendingPay(null)
+      return
+    }
     const payToastId = "pay-appointment"
     let redirected = false
     try {
@@ -493,8 +505,7 @@ export default function MyAppointmentsPage() {
                         >
                           Details
                         </Button>
-                        {!isPaid(appointment) &&
-                          appointment.status !== "cancelled" && (
+                        {canPay(appointment) && (
                             <Button
                               size="sm"
                               className="rounded-full bg-[#b0764a] text-white hover:bg-[#9a643f]"
@@ -614,7 +625,7 @@ export default function MyAppointmentsPage() {
                 >
                   Cancel Appointment
                 </Button>
-                {!isPaid(details) && details.status !== "cancelled" && (
+                {canPay(details) && (
                   <Button
                     className="bg-[#b0764a] text-white hover:bg-[#9a643f]"
                     disabled={payingId === details._id}

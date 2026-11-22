@@ -63,6 +63,11 @@ const data = {
       url: "/dashboard/report-an-issue",
      
     },
+    {
+      title: "My Profile",
+      url: "/dashboard/profile",
+     
+    },
   ],
  
 }

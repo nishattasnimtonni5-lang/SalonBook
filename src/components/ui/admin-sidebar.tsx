@@ -54,6 +54,12 @@ const data = {
       url: "/admin-dashboard/manage-reports",
 
     },
+    {
+      title: "Admin Profile",
+      url: "/admin-dashboard/admin-profile",
+
+    },
+    
     
   ],
  

@@ -83,27 +83,28 @@ const handleBooking = async () => {
       description: "We are creating a secure checkout for this appointment.",
     })
 
-    const response = await fetch(
-      `${API_BASE_URL}/bookings/create-checkout-session`,
-      {  
-           method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        serviceId: service.id,
-        serviceName: service.name,
-        serviceImage: service.image,
-        price: service.price,
-        duration: service.duration,
-        date: selectedDate.toISOString().split("T")[0],
-        time: selectedTime,
-        userId: currentUser.user.id ?? "",
-        customerName: currentUser.user.name ?? "",
-        customerEmail: currentUser.user.email ?? "",
-      }),
-      },
-    )
+   const response = await fetch(
+  `${API_BASE_URL}/bookings/create-checkout-session`,
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify({
+      serviceId: service.id,
+      serviceName: service.name,
+      serviceImage: service.image,
+      price: service.price,
+      duration: service.duration,
+      date: selectedDate.toISOString().split("T")[0],
+      time: selectedTime,
+      userId: currentUser.user.id ?? "",
+      customerName: currentUser.user.name ?? "",
+      customerEmail: currentUser.user.email ?? "",
+    }),
+  }
+);
 
     const data = await response.json()
 

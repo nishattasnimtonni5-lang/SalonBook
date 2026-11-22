@@ -180,6 +180,11 @@ export default function CancelPanel({
   // confirmed action below, which the backend re-verifies.
   const handleCancel = async () => {
     if (!appointment || !userId) return
+    if ((appointment.status ?? "").toLowerCase() !== "pending") {
+      setConfirmCancel(false)
+      setActionError("Only pending appointments can be cancelled.")
+      return
+    }
     setActionError(null)
     const cancelToastId = "cancel-appointment"
     try {
@@ -236,6 +241,15 @@ export default function CancelPanel({
 
   const handleCompletePayment = async () => {
     if (!appointment) return
+    if (
+      (appointment.status ?? "").toLowerCase() !== "confirmed" ||
+      (appointment.paymentStatus ?? "").toLowerCase() === "paid"
+    ) {
+      setActionError(
+        "Only unpaid confirmed appointments can be paid."
+      )
+      return
+    }
     setActionError(null)
     const payToastId = "pay-appointment"
     try {
@@ -335,9 +349,9 @@ export default function CancelPanel({
   const isPaid = paymentStatus === "paid"
   const isCancelled = bookingStatus === "cancelled"
   const isCompleted = bookingStatus === "completed"
-  const canCancel = bookingStatus === "pending" || bookingStatus === "confirmed"
+  const canCancel = bookingStatus === "pending"
   const canPay =
-    !isPaid && !isCancelled && !isCompleted && Boolean(appointment)
+    bookingStatus === "confirmed" && !isPaid && Boolean(appointment)
 
   return (
     <Card className="mx-auto w-full max-w-lg">

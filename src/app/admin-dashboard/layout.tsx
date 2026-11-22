@@ -1,4 +1,7 @@
 
+import { auth } from "@/app/lib/auth";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import {
   SidebarInset,
   SidebarProvider,
@@ -13,11 +16,15 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { AdminSidebar } from "@/components/ui/admin-sidebar";
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session?.user) {
+    redirect("/signin?callbackURL=/admin-dashboard");
+  }
   return (
     <SidebarProvider
       style={

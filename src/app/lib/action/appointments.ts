@@ -15,11 +15,12 @@ export async function createAppointment(payload: {
     console.log(payload, 'payload');
     try {
         const res = await fetch(`${API_BASE_URL}/bookings/create-checkout-session`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-            cache: "no-store",
-        })
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify(payload),
+    cache: "no-store",
+})
         console.log(res, 'res');
         if(!res.ok) {
             const error = await res.json().catch(() => null);

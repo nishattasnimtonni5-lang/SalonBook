@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { headers } from "next/headers";
+import { auth } from "@/app/lib/auth";
 import { ArrowLeft, CalendarCheck, Clock, Tag } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -131,9 +133,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 const ServiceDetailsPage = async ({ params }: PageProps) => {
-  // The service details page is public — everyone can browse it.
-  // The booking form itself asks the visitor to sign in when needed.
   const { id } = await params;
+
+  // Protect details page: redirect visitors to sign in if not authenticated
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session?.user) {
+    redirect(`/signin?callbackURL=/services/${encodeURIComponent(id)}`);
+  }
+
   const service = await getService(decodeURIComponent(id));
 
   if (!service) notFound();
