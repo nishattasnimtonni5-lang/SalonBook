@@ -2,8 +2,11 @@
 
 import { useEffect, useState } from "react"
 import Image from "next/image"
+import Link from "next/link"
 import { CalendarX2, CreditCard, Loader2, RefreshCw } from "lucide-react"
 
+import { authClient } from "@/app/lib/auth-client"
+import { toast } from "@/components/ui/toast"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -49,6 +52,7 @@ import {
 } from "@/components/ui/table"
 
 const API_URL = "http://localhost:8000/appointments"
+const BOOKINGS_URL = "http://localhost:8000/bookings"
 
 type Appointment = {
   _id: string
@@ -61,6 +65,10 @@ type Appointment = {
   time: string
   status: "pending" | "confirmed" | "cancelled" | "completed"
   paymentStatus?: string
+  userId?: string
+  paidAt?: string | null
+  cancelledAt?: string | null
+  refundStatus?: string
   createdAt: string
 }
 
@@ -119,6 +127,16 @@ function formatRequestedTime(value: string) {
   })
 }
 
+function formatDateTime(value?: string | null) {
+  if (!value) return "—"
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
+  return date.toLocaleString("en-US", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  })
+}
+
 function StatusBadge({ status }: { status: string }) {
   const key = status.toLowerCase()
   return (
@@ -160,8 +178,10 @@ async function fetchAppointments(): Promise<Appointment[]> {
 }
 
 export default function MyAppointmentsPage() {
-  const [appointments, setAppointments] = useState<Appointment[]>([])
-  const [loading, setLoading] = useState(true)
+  const { data: session, isPending: sessionPending } = authClient.useSession()
+  const userId = session?.user?.id
+
+  const [appointments, setAppointments] = useState<Appointment[] | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [cancellingId, setCancellingId] = useState<string | null>(null)
   const [pendingCancel, setPendingCancel] = useState<Appointment | null>(null)
@@ -169,67 +189,101 @@ export default function MyAppointmentsPage() {
   const [payingId, setPayingId] = useState<string | null>(null)
   const [details, setDetails] = useState<Appointment | null>(null)
 
+  // Only this customer's bookings are shown, and every value displayed
+  // below comes straight from MongoDB via the backend.
+  const loading =
+    sessionPending || (!!userId && appointments === null && error === null)
+  const list = appointments ?? []
+
   useEffect(() => {
+    if (!userId) return
     let active = true
     fetchAppointments()
       .then((data) => {
         if (!active) return
-        setAppointments(data)
+        setAppointments(data.filter((item) => item.userId === userId))
         setError(null)
       })
       .catch((err: unknown) => {
         if (!active) return
         setError(err instanceof Error ? err.message : "Something went wrong")
       })
-      .finally(() => {
-        if (active) setLoading(false)
-      })
     return () => {
       active = false
     }
-  }, [])
+  }, [userId])
 
   const reload = () => {
-    setLoading(true)
+    if (!userId) return
+    setAppointments(null)
     setError(null)
     fetchAppointments()
       .then((data) => {
-        setAppointments(data)
+        setAppointments(data.filter((item) => item.userId === userId))
         setError(null)
       })
       .catch((err: unknown) => {
         setError(err instanceof Error ? err.message : "Something went wrong")
       })
-      .finally(() => setLoading(false))
   }
 
   const handleCancel = async () => {
-    if (!pendingCancel) return
+    if (!pendingCancel || !userId) return
     const appointment = pendingCancel
+    const cancelToastId = "cancel-appointment"
     try {
       setCancellingId(appointment._id)
-      const response = await fetch(`${API_URL}/${appointment._id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "cancelled" }),
+      toast.add({
+        id: cancelToastId,
+        type: "loading",
+        title: "Cancelling appointment…",
+        description: "Please wait while we cancel this booking.",
       })
-      if (!response.ok) throw new Error("Failed to cancel appointment")
+      // Backend-verified cancellation: the server checks the appointment
+      // id, ownership and eligibility, and never touches paymentStatus.
+      const response = await fetch(
+        `${BOOKINGS_URL}/${appointment._id}/cancel`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId }),
+        }
+      )
+      const data = await response.json().catch(() => null)
+      if (!response.ok) {
+        throw new Error(data?.message || "Failed to cancel appointment")
+      }
+      // Show the state the server actually stored.
+      const updated: Appointment | undefined = data?.appointment
+      const next: Appointment = updated ?? {
+        ...appointment,
+        status: "cancelled",
+      }
       setAppointments((prev) =>
-        prev.map((item) =>
-          item._id === appointment._id
-            ? { ...item, status: "cancelled" }
-            : item
-        )
+        prev?.map((item) => (item._id === appointment._id ? next : item)) ??
+        prev
       )
       setDetails((prev) =>
-        prev && prev._id === appointment._id
-          ? { ...prev, status: "cancelled" }
-          : prev
+        prev && prev._id === appointment._id ? next : prev
       )
+      toast.add({
+        id: cancelToastId,
+        type: "success",
+        title: "Appointment cancelled",
+        description: "Your booking has been cancelled successfully.",
+      })
     } catch (err) {
-      setError(
+      const message =
         err instanceof Error ? err.message : "Failed to cancel appointment"
-      )
+      setError(message)
+      toast.add({
+        id: cancelToastId,
+        type: "error",
+        title: "Cancellation failed",
+        description:
+          message ||
+          "We could not cancel this appointment. Please try again.",
+      })
     } finally {
       setCancellingId(null)
       setPendingCancel(null)
@@ -242,33 +296,58 @@ export default function MyAppointmentsPage() {
   const handlePay = async () => {
     if (!pendingPay) return
     const appointment = pendingPay
+    const payToastId = "pay-appointment"
+    let redirected = false
     try {
       setPayingId(appointment._id)
-      const response = await fetch(`${API_URL}/${appointment._id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ paymentStatus: "paid" }),
+      toast.add({
+        id: payToastId,
+        type: "loading",
+        title: "Starting secure checkout…",
+        description: "We are preparing Stripe payment for this booking.",
       })
-      if (!response.ok) throw new Error("Failed to process payment")
-      setAppointments((prev) =>
-        prev.map((item) =>
-          item._id === appointment._id
-            ? { ...item, paymentStatus: "paid" }
-            : item
-        )
+      // Real Stripe checkout for this appointment. The backend only
+      // returns a redirect URL — paymentStatus becomes "paid" exclusively
+      // through the verified Stripe webhook, never from this page.
+      const response = await fetch(
+        `${BOOKINGS_URL}/${appointment._id}/checkout`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        }
       )
-      setDetails((prev) =>
-        prev && prev._id === appointment._id
-          ? { ...prev, paymentStatus: "paid" }
-          : prev
-      )
+      const data = await response.json().catch(() => null)
+      if (!response.ok) {
+        throw new Error(data?.message || "Failed to start checkout")
+      }
+      const redirectUrl = data?.data?.redirectUrl ?? data?.redirectUrl
+      if (!redirectUrl) {
+        throw new Error("Stripe checkout URL was not returned by the server.")
+      }
+      redirected = true
+      toast.add({
+        id: payToastId,
+        type: "success",
+        title: "Checkout ready",
+        description: "Taking you to Stripe to complete your payment.",
+      })
+      window.location.assign(redirectUrl)
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to process payment"
-      )
+      const message =
+        err instanceof Error ? err.message : "Failed to start checkout"
+      setError(message)
+      toast.add({
+        id: payToastId,
+        type: "error",
+        title: "Checkout could not start",
+        description:
+          message || "We could not start your payment. Please try again.",
+      })
     } finally {
-      setPayingId(null)
-      setPendingPay(null)
+      if (!redirected) {
+        setPayingId(null)
+        setPendingPay(null)
+      }
     }
   }
 
@@ -289,7 +368,7 @@ export default function MyAppointmentsPage() {
           <CardDescription>
             {loading
               ? "Loading your bookings…"
-              : `${appointments.length} ${appointments.length === 1 ? "booking" : "bookings"} found`}
+              : `${list.length} ${list.length === 1 ? "booking" : "bookings"} found`}
           </CardDescription>
         </CardHeader>
 
@@ -303,7 +382,25 @@ export default function MyAppointmentsPage() {
             </div>
           )}
 
-          {loading ? (
+          {!sessionPending && !userId ? (
+            <Empty>
+              <EmptyHeader>
+                <EmptyMedia variant="icon">
+                  <CalendarX2 />
+                </EmptyMedia>
+                <EmptyTitle>Sign in to view your appointments</EmptyTitle>
+                <EmptyDescription>
+                  Your bookings are linked to your account. Sign in to see and
+                  manage them.
+                </EmptyDescription>
+              </EmptyHeader>
+              <Link href="/signin">
+                <Button className="mt-2 bg-[#b0764a] text-white hover:bg-[#9a643f]">
+                  Sign in
+                </Button>
+              </Link>
+            </Empty>
+          ) : loading ? (
             <div className="flex flex-col gap-3">
               <Skeleton className="h-8 w-full" />
               {Array.from({ length: 3 }).map((_, index) => (
@@ -316,7 +413,7 @@ export default function MyAppointmentsPage() {
                 </div>
               ))}
             </div>
-          ) : appointments.length === 0 ? (
+          ) : list.length === 0 ? (
             <Empty>
               <EmptyHeader>
                 <EmptyMedia variant="icon">
@@ -343,7 +440,7 @@ export default function MyAppointmentsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {appointments.map((appointment) => (
+                {list.map((appointment) => (
                   <TableRow key={appointment._id}>
                     <TableCell>
                       <div className="relative size-10 overflow-hidden rounded-lg bg-muted">
@@ -478,6 +575,22 @@ export default function MyAppointmentsPage() {
                       <PaymentBadge appointment={details} />
                     </dd>
                   </div>
+                  {details.paidAt && (
+                    <div className="flex items-center justify-between gap-2 sm:block">
+                      <dt className="text-muted-foreground">Paid At</dt>
+                      <dd className="font-medium">
+                        {formatDateTime(details.paidAt)}
+                      </dd>
+                    </div>
+                  )}
+                  {details.cancelledAt && (
+                    <div className="flex items-center justify-between gap-2 sm:block">
+                      <dt className="text-muted-foreground">Cancelled At</dt>
+                      <dd className="font-medium">
+                        {formatDateTime(details.cancelledAt)}
+                      </dd>
+                    </div>
+                  )}
                   <div className="col-span-full flex justify-between gap-2 sm:block">
                     <dt className="text-muted-foreground">Requested At</dt>
                     <dd className="font-medium">
@@ -533,7 +646,11 @@ export default function MyAppointmentsPage() {
             <AlertDialogTitle>Cancel this appointment?</AlertDialogTitle>
             <AlertDialogDescription>
               {pendingCancel
-                ? `${pendingCancel.serviceName} on ${formatDate(pendingCancel.date)} at ${pendingCancel.time} will be cancelled. This action cannot be undone.`
+                ? `${pendingCancel.serviceName} on ${formatDate(pendingCancel.date)} at ${pendingCancel.time} will be cancelled. This action cannot be undone.${
+                    isPaid(pendingCancel)
+                      ? " Your payment record stays as paid — any refund is handled separately."
+                      : ""
+                  }`
                 : ""}
             </AlertDialogDescription>
           </AlertDialogHeader>

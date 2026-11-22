@@ -64,6 +64,16 @@ const PAYMENT_STATUSES = ["unpaid", "pending", "paid", "failed", "refunded"] as 
 
 type AppointmentStatus = (typeof APPOINTMENT_STATUSES)[number]
 
+// Mirrors the backend's safe transitions: completed/cancelled are
+// terminal, and paymentStatus is deliberately not editable from here —
+// only a verified Stripe webhook may change it.
+const STATUS_TRANSITIONS: Record<AppointmentStatus, AppointmentStatus[]> = {
+  pending: ["confirmed", "cancelled", "completed"],
+  confirmed: ["completed", "cancelled"],
+  completed: [],
+  cancelled: [],
+}
+
 type Appointment = {
   id: string
   userId: string
@@ -79,6 +89,9 @@ type Appointment = {
   createdAt: string
   paymentMethod: string
   paymentStatus: string
+  paidAt: string
+  cancelledAt: string
+  refundStatus: string
   transactionId: string
   paymentAmount: string
   notes: string
@@ -119,6 +132,9 @@ function normalizeAppointment(value: unknown): Appointment | null {
     createdAt: firstText(record, ["createdAt", "bookingDate"]),
     paymentMethod: firstText(record, ["paymentMethod"]),
     paymentStatus: firstText(record, ["paymentStatus"]) || "unpaid",
+    paidAt: firstText(record, ["paidAt"]),
+    cancelledAt: firstText(record, ["cancelledAt"]),
+    refundStatus: firstText(record, ["refundStatus"]),
     transactionId: firstText(record, [
       "transactionId",
       "transactionID",
@@ -263,6 +279,11 @@ function StatusSelect({
   onChange: (appointment: Appointment, status: AppointmentStatus) => void
 }) {
   const currentStatus = normalizeStatus(appointment.status)
+  // Unknown/legacy statuses keep every option available; known statuses
+  // only offer the transitions the backend would accept.
+  const allowedNext = isAppointmentStatus(currentStatus)
+    ? STATUS_TRANSITIONS[currentStatus]
+    : null
 
   return (
     <Select
@@ -281,18 +302,29 @@ function StatusSelect({
         <SelectValue placeholder="Set status" />
       </SelectTrigger>
       <SelectContent>
-        {APPOINTMENT_STATUSES.map((status) => (
-          <SelectItem
-            key={status}
-            value={status}
-            disabled={status === "completed" && !canComplete(appointment)}
-          >
-            {formatLabel(status)}
-            {status === "completed" && !canComplete(appointment)
-              ? " · after appointment time"
-              : ""}
-          </SelectItem>
-        ))}
+        {APPOINTMENT_STATUSES.map((status) => {
+          const blockedByTransition =
+            allowedNext !== null &&
+            status !== currentStatus &&
+            !allowedNext.includes(status)
+          const blockedByCompletion =
+            status === "completed" && !canComplete(appointment)
+
+          return (
+            <SelectItem
+              key={status}
+              value={status}
+              disabled={blockedByTransition || blockedByCompletion}
+            >
+              {formatLabel(status)}
+              {blockedByTransition
+                ? " · unavailable"
+                : blockedByCompletion
+                  ? " · after appointment time"
+                  : ""}
+            </SelectItem>
+          )
+        })}
       </SelectContent>
     </Select>
   )
@@ -997,6 +1029,13 @@ export default function ManageAppointmentsPage() {
                     label="Booking date"
                     value={formatBookingDate(details.createdAt)}
                   />
+                  {details.cancelledAt && (
+                    <DetailItem
+                      icon={CalendarDays}
+                      label="Cancelled at"
+                      value={formatBookingDate(details.cancelledAt)}
+                    />
+                  )}
                   <div className="space-y-1.5">
                     <p className="text-xs font-medium text-muted-foreground">
                       Appointment status
@@ -1015,6 +1054,13 @@ export default function ManageAppointmentsPage() {
                     </p>
                     <PaymentStatusBadge status={details.paymentStatus} />
                   </div>
+                  {details.paidAt && (
+                    <DetailItem
+                      icon={CreditCard}
+                      label="Paid at"
+                      value={formatBookingDate(details.paidAt)}
+                    />
+                  )}
                   <DetailItem
                     icon={CreditCard}
                     label="Payment method"
@@ -1030,10 +1076,18 @@ export default function ManageAppointmentsPage() {
                     label="Payment amount"
                     value={formatPrice(details.paymentAmount)}
                   />
+                  {details.refundStatus && details.refundStatus !== "none" && (
+                    <DetailItem
+                      icon={FileText}
+                      label="Refund status"
+                      value={formatLabel(details.refundStatus)}
+                    />
+                  )}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Payment status is read-only here and must be confirmed by a
-                  future payment integration.
+                  Payment status is read-only here: it changes only when a
+                  verified Stripe webhook confirms the payment, never from
+                  this dashboard.
                 </p>
               </section>
 

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Calendar } from "@/components/ui/calendar"
 import { authClient } from "@/app/lib/auth-client"
+import { toast } from "@/components/ui/toast"
 import { API_BASE_URL } from "@/app/lib/api/config"
 
 type AppointmentFormProps = {
@@ -37,6 +38,7 @@ const [loading, setLoading] = useState(false)
     "05:00 PM",
   ]
 const handleBooking = async () => {
+  const bookingToastId = "book-appointment"
   try {
     setLoading(true)
 
@@ -54,11 +56,32 @@ const handleBooking = async () => {
     const role = (currentUser.user as { role?: string }).role
 
     if (role === "admin") {
-      alert("Admins are not allowed to submit customer appointment requests.")
+      toast.add({
+        id: bookingToastId,
+        type: "error",
+        title: "Booking not allowed",
+        description:
+          "Admins are not allowed to submit customer appointment requests.",
+      })
       return
     }
 
-    if (!selectedDate || !selectedTime) return
+    if (!selectedDate || !selectedTime) {
+      toast.add({
+        id: bookingToastId,
+        type: "error",
+        title: "Missing booking details",
+        description: "Please select both an appointment date and a time slot.",
+      })
+      return
+    }
+
+    toast.add({
+      id: bookingToastId,
+      type: "loading",
+      title: "Preparing your booking…",
+      description: "We are creating a secure checkout for this appointment.",
+    })
 
     const response = await fetch(
       `${API_BASE_URL}/bookings/create-checkout-session`,
@@ -91,17 +114,40 @@ const handleBooking = async () => {
         data?.url
 
       if (!redirectUrl) {
-        alert("Stripe checkout URL was not returned by the server.")
+        toast.add({
+          id: bookingToastId,
+          type: "error",
+          title: "Checkout unavailable",
+          description:
+            "Stripe checkout URL was not returned by the server. Please try booking again.",
+        })
         return
       }
 
+      toast.add({
+        id: bookingToastId,
+        type: "success",
+        title: "Appointment ready for payment",
+        description: "Taking you to secure checkout to finish your booking.",
+      })
       window.location.assign(redirectUrl)
     } else {
-      alert(data.message || "Booking failed!")
+      toast.add({
+        id: bookingToastId,
+        type: "error",
+        title: "Booking failed",
+        description: data.message || "We could not create your appointment. Please try again.",
+      })
     }
   } catch (error) {
     console.log(error)
-    alert("Something went wrong!")
+    toast.add({
+      id: bookingToastId,
+      type: "error",
+      title: "Booking failed",
+      description:
+        "We could not reach the booking service. Please check your connection and try again.",
+    })
   } finally {
     setLoading(false)
   }

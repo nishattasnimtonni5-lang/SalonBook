@@ -1,11 +1,15 @@
-import React from 'react';
+import SuccessPanel from "./success-panel"
 
-const SuccessPage = () => {
-    return (
-        <div>
-            Thank you for your payment.
-        </div>
-    );
-};
+// searchParams is a Promise in this Next.js version, so the page awaits it
+// on the server and passes the plain value down — no client-side guessing
+// about payment state; the panel always verifies against the backend.
+export default async function SuccessPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ appointmentId?: string | string[] }>
+}) {
+  const { appointmentId } = await searchParams
+  const id = typeof appointmentId === "string" ? appointmentId : ""
 
-export default SuccessPage;
+  return <SuccessPanel appointmentId={id} />
+}

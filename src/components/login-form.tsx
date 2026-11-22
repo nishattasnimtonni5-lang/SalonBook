@@ -16,6 +16,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { authClient } from "@/app/lib/auth-client"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { toast } from "@/components/ui/toast"
 import { useState } from "react"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
@@ -36,6 +37,14 @@ const router = useRouter()
   const email = formData.get("email") as string
   const password = formData.get("password") as string
 
+  const signInId = "auth-sign-in"
+  toast.add({
+    id: signInId,
+    type: "loading",
+    title: "Signing in…",
+    description: "Please wait while we check your credentials.",
+  })
+
   const { data, error } = await authClient.signIn.email({
     email,
     password,
@@ -44,22 +53,46 @@ const router = useRouter()
 
   if (error) {
     console.log(error.message)
+    toast.add({
+      id: signInId,
+      type: "error",
+      title: "Sign in failed",
+      description:
+        error.message || "We could not sign you in. Please check your email and password.",
+    })
     return
   }
 
   const user = data.user as typeof data.user & { role?: string }
 
   if (role === "admin" && user.role !== "admin") {
-    alert("You are not authorized as Admin")
+    toast.add({
+      id: signInId,
+      type: "error",
+      title: "Admin access required",
+      description: "This account is not authorized as an admin. Please sign in with an admin account.",
+    })
     await authClient.signOut()
     return
   }
 
   if (role === "customer" && user.role !== "customer") {
-    alert("Please select the correct role")
+    toast.add({
+      id: signInId,
+      type: "error",
+      title: "Wrong role selected",
+      description: "This account does not match the selected role. Please select the correct role.",
+    })
     await authClient.signOut()
     return
   }
+
+  toast.add({
+    id: signInId,
+    type: "success",
+    title: "Signed in successfully",
+    description: "Welcome back! Redirecting you now…",
+  })
 
   if (user.role === "admin") {
     router.push("/admin-dashboard")

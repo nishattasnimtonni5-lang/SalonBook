@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { authClient } from "@/app/lib/auth-client"
+import { toast } from "@/components/ui/toast"
 import { useRef, useState } from "react"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
@@ -36,9 +37,21 @@ export function SignUpForm({
     console.log({ email, password })
 
     if (password !== confirmPassword) {
-      alert("Passwords do not match")
+      toast.add({
+        id: "sign-up",
+        type: "error",
+        title: "Passwords do not match",
+        description: "Please type the same password in both fields.",
+      })
       return
     }
+
+    toast.add({
+      id: "sign-up",
+      type: "loading",
+      title: "Creating your account…",
+      description: "Hang tight, this only takes a moment.",
+    })
 
     const { data, error } = await authClient.signUp.email({
       name,
@@ -49,6 +62,12 @@ export function SignUpForm({
 })
 
 if (!error) {
+  toast.add({
+    id: "sign-up",
+    type: "success",
+    title: "Account created",
+    description: "Your account is ready. Taking you to the homepage…",
+  })
   router.push("/")
 }
 
@@ -57,6 +76,14 @@ if (!error) {
 
     if (error) {
       console.log(error.message)
+      toast.add({
+        id: "sign-up",
+        type: "error",
+        title: "Sign up failed",
+        description:
+          error.message ||
+          "We could not create your account. Please try again.",
+      })
       return
     }
   }
@@ -78,6 +105,13 @@ if (!error) {
 
     setUploading(true)
 
+    toast.add({
+      id: "sign-up-image",
+      type: "loading",
+      title: "Uploading image…",
+      description: "Please wait while we upload your profile photo.",
+    })
+
     try {
       const res = await fetch("/api/upload", {
         method: "POST",
@@ -86,14 +120,32 @@ if (!error) {
       const data: { url?: string; error?: string } = await res.json()
 
       if (!res.ok || !data.url) {
-        alert(data.error || "Image upload failed")
+        toast.add({
+          id: "sign-up-image",
+          type: "error",
+          title: "Image upload failed",
+          description:
+            data.error || "We could not upload that image. Please try another one.",
+        })
         return
       }
 
       setImageUrl(data.url)
+      toast.add({
+        id: "sign-up-image",
+        type: "success",
+        title: "Image uploaded",
+        description: "Your profile photo has been added.",
+      })
     } catch (error) {
       console.log(error)
-      alert("Something went wrong")
+      toast.add({
+        id: "sign-up-image",
+        type: "error",
+        title: "Image upload failed",
+        description:
+          "We could not reach the upload service. Please check your connection and try again.",
+      })
     } finally {
       setUploading(false)
     }

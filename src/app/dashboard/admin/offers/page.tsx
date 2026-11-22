@@ -19,6 +19,7 @@ import {
 } from "lucide-react"
 
 import { authClient } from "@/app/lib/auth-client"
+import { toast } from "@/components/ui/toast"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -244,11 +245,23 @@ const AdminOffersPage = () => {
     setFormErrors(errors)
     if (Object.keys(errors).length > 0) {
       setFormError(null)
+      toast.add({
+        id: "save-offer",
+        type: "error",
+        title: "Please fix the highlighted fields",
+        description: "Some offer details are missing or invalid.",
+      })
       return
     }
 
     setSaving(true)
     setFormError(null)
+    toast.add({
+      id: "save-offer",
+      type: "loading",
+      title: editing ? "Saving offer…" : "Creating offer…",
+      description: "Please wait while we save this offer.",
+    })
     try {
       const response = await fetch(
         editing ? `${ADMIN_OFFERS_API}/${editing._id}` : ADMIN_OFFERS_API,
@@ -267,12 +280,26 @@ const AdminOffersPage = () => {
 
       setDialogOpen(false)
       await loadOffers()
+      toast.add({
+        id: "save-offer",
+        type: "success",
+        title: editing ? "Offer updated" : "Offer created",
+        description: editing
+          ? "Your changes to this offer have been saved."
+          : "The new offer has been added to your list.",
+      })
     } catch (err) {
-      setFormError(
+      const message =
         err instanceof Error
           ? err.message
           : "The offer could not be saved. Please try again."
-      )
+      setFormError(message)
+      toast.add({
+        id: "save-offer",
+        type: "error",
+        title: "Offer not saved",
+        description: message,
+      })
     } finally {
       setSaving(false)
     }
@@ -281,6 +308,13 @@ const AdminOffersPage = () => {
   const handleToggle = async (offer: Offer) => {
     setTogglingId(offer._id)
     setError(null)
+    const toggleToastId = `toggle-offer-${offer._id}`
+    toast.add({
+      id: toggleToastId,
+      type: "loading",
+      title: offer.active ? "Deactivating offer…" : "Activating offer…",
+      description: "Please wait while we update this offer.",
+    })
     try {
       const response = await fetch(`${ADMIN_OFFERS_API}/${offer._id}`, {
         method: "PATCH",
@@ -301,12 +335,26 @@ const AdminOffersPage = () => {
           item._id === offer._id ? { ...item, active: !offer.active } : item
         )
       )
+      toast.add({
+        id: toggleToastId,
+        type: "success",
+        title: offer.active ? "Offer deactivated" : "Offer activated",
+        description: offer.active
+          ? "This offer is no longer visible to customers."
+          : "This offer is now visible to customers.",
+      })
     } catch (err) {
-      setError(
+      const message =
         err instanceof Error
           ? err.message
           : "The offer could not be updated. Please try again."
-      )
+      setError(message)
+      toast.add({
+        id: toggleToastId,
+        type: "error",
+        title: "Offer not updated",
+        description: message,
+      })
     } finally {
       setTogglingId(null)
     }
@@ -317,6 +365,13 @@ const AdminOffersPage = () => {
     const offer = pendingDelete
     setDeleting(true)
     setError(null)
+    const deleteToastId = "delete-offer"
+    toast.add({
+      id: deleteToastId,
+      type: "loading",
+      title: "Deleting offer…",
+      description: "Please wait while we remove this offer.",
+    })
     try {
       const response = await fetch(`${ADMIN_OFFERS_API}/${offer._id}`, {
         method: "DELETE",
@@ -332,13 +387,25 @@ const AdminOffersPage = () => {
 
       setOffers((prev) => prev.filter((item) => item._id !== offer._id))
       setPendingDelete(null)
+      toast.add({
+        id: deleteToastId,
+        type: "success",
+        title: "Offer deleted",
+        description: "The offer has been removed from your list.",
+      })
     } catch (err) {
-      setError(
+      const message =
         err instanceof Error
           ? err.message
           : "The offer could not be deleted. Please try again."
-      )
+      setError(message)
       setPendingDelete(null)
+      toast.add({
+        id: deleteToastId,
+        type: "error",
+        title: "Offer not deleted",
+        description: message,
+      })
     } finally {
       setDeleting(false)
     }

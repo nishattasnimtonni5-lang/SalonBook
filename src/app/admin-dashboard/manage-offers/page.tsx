@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Field, FieldLabel } from "@/components/ui/field";
+import { toast } from "@/components/ui/toast";
 
 export default function ManageOffersPage() {
   const [imageUrl, setImageUrl] = useState("");
@@ -45,6 +46,13 @@ export default function ManageOffersPage() {
 
     setUploading(true);
 
+    toast.add({
+      id: "offer-image",
+      type: "loading",
+      title: "Uploading image…",
+      description: "Please wait while we upload the offer banner.",
+    });
+
     try {
       const res = await fetch("/api/upload", {
         method: "POST",
@@ -54,15 +62,32 @@ export default function ManageOffersPage() {
       const data: { url?: string; error?: string } = await res.json();
 
       if (!res.ok || !data.url) {
-        alert(data.error || "Image upload failed");
+        toast.add({
+          id: "offer-image",
+          type: "error",
+          title: "Image upload failed",
+          description:
+            data.error || "We could not upload that image. Please try another one.",
+        });
         return;
       }
 
       setImageUrl(data.url);
-      alert("Image uploaded successfully!");
+      toast.add({
+        id: "offer-image",
+        type: "success",
+        title: "Image uploaded",
+        description: "The offer banner is ready to use.",
+      });
     } catch (error) {
       console.log(error);
-      alert("Something went wrong");
+      toast.add({
+        id: "offer-image",
+        type: "error",
+        title: "Image upload failed",
+        description:
+          "We could not reach the upload service. Please check your connection and try again.",
+      });
     } finally {
       setUploading(false);
     }
@@ -75,13 +100,25 @@ export default function ManageOffersPage() {
 
     const form = e.currentTarget;
 
+    const submitToastId = "add-offer";
+
     if (!imageUrl) {
-      alert("Please upload an offer image first.");
+      toast.add({
+        id: submitToastId,
+        type: "error",
+        title: "Offer image required",
+        description: "Please upload an offer image before publishing this offer.",
+      });
       return;
     }
 
     if (!category) {
-      alert("Please select a category.");
+      toast.add({
+        id: submitToastId,
+        type: "error",
+        title: "Category required",
+        description: "Please select a category for this offer.",
+      });
       return;
     }
 
@@ -102,6 +139,13 @@ export default function ManageOffersPage() {
 
     setSubmitting(true);
 
+    toast.add({
+      id: submitToastId,
+      type: "loading",
+      title: "Publishing offer…",
+      description: "Saving this promotion to your offers list.",
+    });
+
     try {
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/offers`,
@@ -117,11 +161,22 @@ export default function ManageOffersPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        alert(data.message || "Failed to publish offer.");
+        const message = data.message || "Failed to publish offer."
+        toast.add({
+          id: submitToastId,
+          type: "error",
+          title: "Offer not published",
+          description: message,
+        });
         return;
       }
 
-      alert("Offer published successfully!");
+      toast.add({
+        id: submitToastId,
+        type: "success",
+        title: "Offer published",
+        description: "Your new offer is now live on the site.",
+      });
 
       form.reset();
       setImageUrl("");
@@ -134,7 +189,13 @@ export default function ManageOffersPage() {
       }
     } catch (error) {
       console.log(error);
-      alert("Something went wrong!");
+      toast.add({
+        id: submitToastId,
+        type: "error",
+        title: "Offer not published",
+        description:
+          "We could not reach the server. Please check your connection and try again.",
+      });
     } finally {
       setSubmitting(false);
     }

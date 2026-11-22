@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/select";
 import Image from "next/image";
 import { Field, FieldLabel } from "@/components/ui/field";
+import { toast } from "@/components/ui/toast";
 
 export default function ManageServicesPage() {
   const [featured, setFeatured] = useState(false);
@@ -42,6 +43,13 @@ const [submitting, setSubmitting] = useState(false);
 
     setUploading(true)
 
+    toast.add({
+      id: "service-image",
+      type: "loading",
+      title: "Uploading image…",
+      description: "Please wait while we upload the service photo.",
+    })
+
     try {
       const res = await fetch("/api/upload", {
         method: "POST",
@@ -50,14 +58,32 @@ const [submitting, setSubmitting] = useState(false);
       const data: { url?: string; error?: string } = await res.json()
 
       if (!res.ok || !data.url) {
-        alert(data.error || "Image upload failed")
+        toast.add({
+          id: "service-image",
+          type: "error",
+          title: "Image upload failed",
+          description:
+            data.error || "We could not upload that image. Please try another one.",
+        })
         return
       }
 
       setImageUrl(data.url)
+      toast.add({
+        id: "service-image",
+        type: "success",
+        title: "Image uploaded",
+        description: "The service photo is ready to use.",
+      })
     } catch (error) {
       console.log(error)
-      alert("Something went wrong")
+      toast.add({
+        id: "service-image",
+        type: "error",
+        title: "Image upload failed",
+        description:
+          "We could not reach the upload service. Please check your connection and try again.",
+      })
     } finally {
       setUploading(false)
     }
@@ -65,8 +91,15 @@ const [submitting, setSubmitting] = useState(false);
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
   e.preventDefault();
 
+  const submitToastId = "add-service"
+
   if (!imageUrl) {
-    alert("Please upload a service image first.");
+    toast.add({
+      id: submitToastId,
+      type: "error",
+      title: "Service image required",
+      description: "Please upload a service image before adding this service.",
+    })
     return;
   }
 
@@ -85,6 +118,13 @@ const [submitting, setSubmitting] = useState(false);
 
   setSubmitting(true);
 
+  toast.add({
+    id: submitToastId,
+    type: "loading",
+    title: "Adding service…",
+    description: "Saving the new service to your catalogue.",
+  })
+
   try {
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/services`,
@@ -100,11 +140,22 @@ const [submitting, setSubmitting] = useState(false);
     const data = await res.json();
 
     if (!res.ok) {
-      alert(data.message || "Failed to add service");
+      const message = data.message || "Failed to add service"
+      toast.add({
+        id: submitToastId,
+        type: "error",
+        title: "Service not added",
+        description: message,
+      })
       return;
     }
 
-    alert("Service added successfully!");
+    toast.add({
+      id: submitToastId,
+      type: "success",
+      title: "Service added",
+      description: "The new service is now live in your catalogue.",
+    })
     e.currentTarget.reset();
     const form = e.currentTarget;
     form.reset();
@@ -113,7 +164,13 @@ const [submitting, setSubmitting] = useState(false);
     setStatus("active");
   } catch (error) {
     console.log(error);
-    alert("Something went wrong!");
+    toast.add({
+      id: submitToastId,
+      type: "error",
+      title: "Service not added",
+      description:
+        "We could not reach the server. Please check your connection and try again.",
+    })
   } finally {
     setSubmitting(false);
   }

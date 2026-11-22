@@ -95,26 +95,84 @@ export default function Home() {
       {/* ============ Banner / Hero ============ */}
       <section className="relative">
         <div className="mx-auto w-full max-w-6xl px-6 py-6 md:py-10">
-          <div className="relative aspect-square overflow-hidden rounded-2xl shadow-xl shadow-zinc-900/10 ring-1 ring-black/5 [container-type:inline-size] md:aspect-[1672/941]">
+          <div className="group relative overflow-hidden rounded-2xl shadow-xl shadow-zinc-900/10 ring-1 ring-black/5">
+            {/* Winter Special campaign banner — model portrait with offer copy */}
             <Image
               src="/winter-special-banner.jpg"
-              alt="BelleAura Winter Special — enjoy 25% off on selected salon services: facial care, hair spa, nail care and skin care."
-              width={1672}
-              height={941}
+              alt="Winter Special — enjoy 25% off selected salon services at SalonBook"
+              fill
               sizes="(max-width: 768px) calc(100vw - 48px), 1152px"
               loading="eager"
               fetchPriority="high"
-              className="absolute inset-0 h-full w-full object-cover object-left md:object-center"
+              className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
             />
 
-            {/* Real button sitting exactly on top of the poster's "Book Your Appointment" pill */}
-            <Link
-              href="/services"
-              className="absolute left-[calc(11.796%-1px)] top-[calc(78.427%-1px)] flex h-[calc(8.289%+2px)] w-[calc(46%+2px)] items-center justify-center gap-[0.4em] whitespace-nowrap rounded-full bg-[#5c1434] text-[2.87cqw] leading-none font-semibold text-white shadow-md shadow-black/20 transition-colors hover:bg-[#74204a] focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#5c1434] focus-visible:outline-none md:left-[calc(6.639%-1px)] md:w-[calc(24.882%+2px)] md:text-[1.615cqw]"
-            >
-              Book Your Appointment
-              <ArrowRight className="size-[1em] shrink-0" />
-            </Link>
+            {/* Light readability scrim — kept faint so the banner art stays crisp */}
+            <div
+              aria-hidden="true"
+              className="absolute inset-0 bg-gradient-to-b from-white/55 via-white/25 to-white/5 dark:from-zinc-950/70 dark:via-zinc-950/40 dark:to-zinc-950/10 md:hidden"
+            />
+            <div
+              aria-hidden="true"
+              className="absolute inset-0 hidden bg-gradient-to-r from-white/75 via-white/25 to-transparent dark:from-zinc-950/85 dark:via-zinc-950/45 dark:to-transparent md:block"
+            />
+
+            <div className="relative flex min-h-[18rem] flex-col justify-center px-6 py-10 sm:min-h-[22rem] sm:px-8 sm:py-12 md:min-h-[26rem] md:px-12 md:py-14 lg:min-h-[28rem]">
+              <div className="max-w-md">
+                <span
+                  className="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-white/80 px-3 py-1 text-xs font-medium text-rose-600 backdrop-blur motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-3 motion-safe:duration-700 motion-safe:fill-mode-both dark:border-rose-500/30 dark:bg-zinc-900/80 dark:text-rose-400"
+                >
+                  <Sparkles className="size-3.5" />
+                  Premium salon experiences
+                </span>
+
+                <h1 className="mt-4 text-3xl leading-[1.1] font-semibold tracking-tight text-zinc-900 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-4 motion-safe:duration-700 motion-safe:delay-100 motion-safe:fill-mode-both sm:text-4xl md:text-5xl dark:text-zinc-50">
+                  Discover Your Beauty,{" "}
+                  <span className="bg-gradient-to-r from-rose-600 via-pink-600 to-rose-500 bg-clip-text text-transparent">
+                    Define Your Style
+                  </span>
+                </h1>
+
+                <p className="mt-4 max-w-md text-sm leading-6 text-zinc-600 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-4 motion-safe:duration-700 motion-safe:delay-200 motion-safe:fill-mode-both sm:text-base dark:text-zinc-300">
+                  From precision cuts and vibrant colour to relaxing facials and
+                  bridal makeup — SalonBook connects you with verified
+                  professionals and lets you book your next appointment in
+                  minutes.
+                </p>
+
+                <div className="mt-6 flex flex-wrap gap-3 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-4 motion-safe:duration-700 motion-safe:delay-300 motion-safe:fill-mode-both">
+                  <Link
+                    href="/services"
+                    className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-rose-600 px-6 text-sm font-semibold text-white shadow-lg shadow-rose-500/25 transition-all duration-300 hover:-translate-y-0.5 hover:bg-rose-700 hover:shadow-rose-500/40 focus-visible:ring-2 focus-visible:ring-rose-600 focus-visible:ring-offset-2 focus-visible:outline-none"
+                  >
+                    Explore Services
+                    <ArrowRight className="size-4" />
+                  </Link>
+                  <Link
+                    href="/services"
+                    className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-zinc-900/15 bg-white/80 px-6 text-sm font-semibold text-zinc-900 backdrop-blur transition-all duration-300 hover:-translate-y-0.5 hover:bg-white focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2 focus-visible:outline-none dark:border-white/20 dark:bg-zinc-900/70 dark:text-zinc-50 dark:hover:bg-zinc-900"
+                  >
+                    <CalendarCheck className="size-4" />
+                    Book an Appointment
+                  </Link>
+                </div>
+
+                <ul className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-xs text-zinc-600 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-4 motion-safe:duration-700 motion-safe:delay-500 motion-safe:fill-mode-both dark:text-zinc-400">
+                  <li className="flex items-center gap-1.5">
+                    <Star className="size-4 fill-amber-400 text-amber-400" />
+                    4.9/5 client rating
+                  </li>
+                  <li className="flex items-center gap-1.5">
+                    <ShieldCheck className="size-4 text-rose-600 dark:text-rose-400" />
+                    Verified professionals
+                  </li>
+                  <li className="flex items-center gap-1.5">
+                    <Scissors className="size-4 text-rose-600 dark:text-rose-400" />
+                    120+ salon services
+                  </li>
+                </ul>
+              </div>
+            </div>
           </div>
         </div>
       </section>

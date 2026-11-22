@@ -28,6 +28,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { toast } from "@/components/ui/toast"
 import {
   EMPTY_REPORT_FORM,
   ISSUE_CATEGORIES,
@@ -80,11 +81,24 @@ export default function ReportIssuePage() {
         status: "error",
         message: "Please fix the highlighted fields and try again.",
       })
+      toast.add({
+        id: "submit-report",
+        type: "error",
+        title: "Please fix the highlighted fields",
+        description:
+          "Some required details are missing or invalid before you can submit.",
+      })
       return
     }
 
     setFieldErrors({})
     setSubmitState({ status: "submitting" })
+    toast.add({
+      id: "submit-report",
+      type: "loading",
+      title: "Submitting your report…",
+      description: "Thanks for flagging this — we are sending it to our team.",
+    })
 
     try {
       const response = await fetch("/api/reports", {
@@ -100,27 +114,48 @@ export default function ReportIssuePage() {
 
       if (!response.ok) {
         if (data?.errors) setFieldErrors(data.errors)
+        const message =
+          data?.message ??
+          "Your report could not be submitted. Please try again."
         setSubmitState({
           status: "error",
-          message:
-            data?.message ??
-            "Your report could not be submitted. Please try again.",
+          message,
+        })
+        toast.add({
+          id: "submit-report",
+          type: "error",
+          title: "Report not submitted",
+          description: message,
         })
         return
       }
 
+      const successMessage =
+        data?.message ??
+        "Your report has been submitted. Our team will review it shortly."
       setValues(EMPTY_REPORT_FORM)
       setSubmitState({
         status: "success",
-        message:
-          data?.message ??
-          "Your report has been submitted. Our team will review it shortly.",
+        message: successMessage,
+      })
+      toast.add({
+        id: "submit-report",
+        type: "success",
+        title: "Report submitted",
+        description: successMessage,
       })
     } catch {
+      const message =
+        "Something went wrong while submitting your report. Please check your connection and try again."
       setSubmitState({
         status: "error",
-        message:
-          "Something went wrong while submitting your report. Please check your connection and try again.",
+        message,
+      })
+      toast.add({
+        id: "submit-report",
+        type: "error",
+        title: "Report not submitted",
+        description: message,
       })
     }
   }

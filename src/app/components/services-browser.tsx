@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { cn } from "cn";
-import { RefreshCw, Scissors } from "lucide-react";
+import { RefreshCw, Scissors, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
 import ServiceCard from "./service-card";
 
 type ApiService = {
@@ -39,6 +40,7 @@ export default function ServicesBrowser() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeCategory, setActiveCategory] = useState<string>("All");
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -74,7 +76,6 @@ export default function ServicesBrowser() {
       .finally(() => setLoading(false));
   };
 
-  // Categories come from the API data — no hardcoded list.
   const serviceCategories = [
     "All",
     ...Array.from(
@@ -86,14 +87,34 @@ export default function ServicesBrowser() {
     ),
   ];
 
-  const visibleServices =
-    activeCategory === "All"
-      ? services
-      : services.filter((service) => service.category === activeCategory);
+  const visibleServices = services.filter((service) => {
+    const matchesCategory =
+      activeCategory === "All" || service.category === activeCategory;
+
+    const matchesSearch = service.name
+      .toLowerCase()
+      .includes(searchQuery.trim().toLowerCase());
+
+    return matchesCategory && matchesSearch;
+  });
 
   return (
     <section className="mx-auto w-full max-w-6xl px-6 pt-10 pb-20">
-      {/* Category filters */}
+      {!loading && !error && (
+        <div className="mb-6">
+          <div className="relative mx-auto max-w-md">
+            <Search className="absolute top-1/2 left-4 size-4 -translate-y-1/2 text-zinc-400" />
+            <Input
+              type="search"
+              placeholder="Search services by name..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="h-11 rounded-full border-black/[.10] bg-white pl-11 dark:border-white/[.145] dark:bg-zinc-900"
+            />
+          </div>
+        </div>
+      )}
+
       {!loading && !error && serviceCategories.length > 1 && (
         <>
           <div className="flex flex-wrap items-center justify-center gap-2">
@@ -121,7 +142,6 @@ export default function ServicesBrowser() {
         </>
       )}
 
-      {/* Loading state */}
       {loading && (
         <div
           aria-busy="true"
@@ -149,7 +169,6 @@ export default function ServicesBrowser() {
         </div>
       )}
 
-      {/* Error state */}
       {!loading && error && (
         <div className="mt-8 rounded-2xl border border-dashed border-red-300 bg-red-50 px-6 py-14 text-center dark:border-red-500/30 dark:bg-red-500/10">
           <Scissors className="mx-auto size-8 text-red-400" />
@@ -169,14 +188,17 @@ export default function ServicesBrowser() {
         </div>
       )}
 
-      {/* Empty state */}
       {!loading && !error && visibleServices.length === 0 && (
         <div className="mt-8 rounded-2xl border border-dashed border-black/[.08] bg-zinc-50 px-6 py-14 text-center dark:border-white/[.12] dark:bg-zinc-900">
           <Scissors className="mx-auto size-8 text-rose-400" />
           <p className="mt-3 text-sm font-medium text-zinc-700 dark:text-zinc-300">
             {services.length === 0
               ? "No services available right now."
-              : `No services in ${activeCategory} yet.`}
+              : searchQuery.trim()
+                ? `No services found for "${searchQuery}".`
+                : activeCategory !== "All"
+                  ? `No services in ${activeCategory} yet.`
+                  : "No matching services found."}
           </p>
           <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
             Please check back soon — new treatments are added regularly.
@@ -184,7 +206,6 @@ export default function ServicesBrowser() {
         </div>
       )}
 
-      {/* Service cards */}
       {!loading && !error && visibleServices.length > 0 && (
         <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {visibleServices.map((service) => (
