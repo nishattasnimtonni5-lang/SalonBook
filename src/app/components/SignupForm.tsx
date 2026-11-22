@@ -62,6 +62,23 @@ export function SignUpForm({
 })
 
 if (!error) {
+  // Exchange the verified BetterAuth session for a backend JWT.
+  try {
+    const tokenRes = await fetch("http://localhost:8000/auth/token", {
+      method: "POST",
+      credentials: "include",
+    });
+    if (!tokenRes.ok) throw new Error("JWT issuance failed");
+  } catch (err) {
+    toast.add({
+      id: "sign-up",
+      type: "error",
+      title: "Account created, but token issuance failed",
+      description: "Please sign in again to continue.",
+    });
+    return;
+  }
+
   toast.add({
     id: "sign-up",
     type: "success",

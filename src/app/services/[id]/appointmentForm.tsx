@@ -21,8 +21,9 @@ type AppointmentFormProps = {
 }
 
 export default function AppointmentForm({ service }: AppointmentFormProps) {
-  const [selectedDate, setSelectedDate] = useState<Date>()
-  const [selectedTime, setSelectedTime] = useState("")
+const [selectedDate, setSelectedDate] = useState<Date>()
+const [selectedTime, setSelectedTime] = useState("")
+const [phone, setPhone] = useState("")
 const [loading, setLoading] = useState(false)
   // Attach the signed-in customer so booking history can be shown
   // per customer. Visitors are asked to sign in when they book.
@@ -65,6 +66,8 @@ const handleBooking = async () => {
       })
       return
     }
+
+    if (role === "admin") {
       toast.add({
         id: bookingToastId,
         type: "error",
@@ -105,6 +108,10 @@ const handleBooking = async () => {
       setLoading(false);
       return;
     }
+
+    toast.add({
+      id: bookingToastId,
+      type: "loading",
       title: "Booking your appointment…",
       description: "Please wait while we confirm your appointment details.",
     })
@@ -126,6 +133,7 @@ const handleBooking = async () => {
         userId: currentUser.user.id ?? "",
         customerName: currentUser.user.name ?? "",
         customerEmail: currentUser.user.email ?? "",
+        customerPhone: phone,
       }),
     });
 
@@ -204,6 +212,17 @@ const handleBooking = async () => {
   ))}
 </div>
 </div>
+        <div>
+          <h3 className="mb-2 font-semibold">Phone number</h3>
+          <input
+            type="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder="01XXXXXXXXX"
+            className="w-full rounded-md border px-3 py-2"
+            required
+          />
+        </div>
 <Button
   className="w-full"
   disabled={!selectedDate || !selectedTime || loading || service.status !== "active" && !!service.status}

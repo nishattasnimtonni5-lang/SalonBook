@@ -130,7 +130,7 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 async function fetchAppointments(): Promise<Appointment[]> {
-  const response = await fetch(API_URL, { cache: "no-store" })
+  const response = await fetch(API_URL, { cache: "no-store", credentials: "include" })
   if (!response.ok) throw new Error("Failed to fetch appointments")
   const data = await response.json()
   return Array.isArray(data) ? data : []

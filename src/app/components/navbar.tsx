@@ -44,6 +44,14 @@ export default function Navbar() {
 
   const handleSignout = async () => {
     await authClient.signOut();
+    try {
+      await fetch("http://localhost:8000/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (err) {
+      console.error("Logout request failed", err);
+    }
     router.push("/");
   };
 

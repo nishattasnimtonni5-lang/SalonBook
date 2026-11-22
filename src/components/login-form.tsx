@@ -101,6 +101,23 @@ const router = useRouter()
     return
   }
 
+  // Exchange the verified BetterAuth session for a backend JWT.
+  try {
+    const tokenRes = await fetch("http://localhost:8000/auth/token", {
+      method: "POST",
+      credentials: "include",
+    });
+    if (!tokenRes.ok) throw new Error("JWT issuance failed");
+  } catch (err) {
+    toast.add({
+      id: signInId,
+      type: "error",
+      title: "Authentication incomplete",
+      description: "Could not issue access token. Please try again.",
+    });
+    return;
+  }
+
   toast.add({
     id: signInId,
     type: "success",
