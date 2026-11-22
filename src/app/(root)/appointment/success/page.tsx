@@ -6,10 +6,14 @@ import SuccessPanel from "./success-panel"
 export default async function SuccessPage({
   searchParams,
 }: {
-  searchParams: Promise<{ appointmentId?: string | string[] }>
+  searchParams: Promise<{
+    appointmentId?: string | string[];
+    session_id?: string | string[];
+  }>;
 }) {
-  const { appointmentId } = await searchParams
-  const id = typeof appointmentId === "string" ? appointmentId : ""
+  const { appointmentId, session_id } = await searchParams;
+  const id = typeof appointmentId === "string" ? appointmentId : "";
+  const sessionId = typeof session_id === "string" ? session_id : "";
 
-  return <SuccessPanel appointmentId={id} />
+  return <SuccessPanel appointmentId={id} sessionId={sessionId} />;
 }

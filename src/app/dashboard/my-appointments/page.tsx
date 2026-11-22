@@ -171,7 +171,10 @@ function isPaid(appointment: Appointment) {
 }
 
 async function fetchAppointments(): Promise<Appointment[]> {
-  const response = await fetch(API_URL, { cache: "no-store" })
+  const response = await fetch(API_URL, {
+    credentials: "include",
+    cache: "no-store",
+  })
   if (!response.ok) throw new Error("Failed to fetch appointments")
   const data = await response.json()
   return Array.isArray(data) ? data : []
@@ -250,6 +253,7 @@ export default function MyAppointmentsPage() {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          credentials: "include",
           body: JSON.stringify({ userId }),
         }
       )
@@ -289,6 +293,7 @@ export default function MyAppointmentsPage() {
     } finally {
       setCancellingId(null)
       setPendingCancel(null)
+      setDetails(null)
     }
   }
 
@@ -326,6 +331,7 @@ export default function MyAppointmentsPage() {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          credentials: "include",
         }
       )
       const data = await response.json().catch(() => null)
@@ -621,7 +627,10 @@ export default function MyAppointmentsPage() {
                 <Button
                   variant="destructive"
                   disabled={!canCancel(details.status)}
-                  onClick={() => setPendingCancel(details)}
+                  onClick={() => {
+                    setPendingCancel(details)
+                    setDetails(null)
+                  }}
                 >
                   Cancel Appointment
                 </Button>

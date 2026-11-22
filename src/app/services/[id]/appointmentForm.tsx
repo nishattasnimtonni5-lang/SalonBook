@@ -79,78 +79,63 @@ const handleBooking = async () => {
     toast.add({
       id: bookingToastId,
       type: "loading",
-      title: "Preparing your booking…",
-      description: "We are creating a secure checkout for this appointment.",
+      title: "Booking your appointment…",
+      description: "Please wait while we confirm your appointment details.",
     })
 
-   const response = await fetch(
-  `${API_BASE_URL}/bookings/create-checkout-session`,
-  {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    credentials: "include",
-    body: JSON.stringify({
-      serviceId: service.id,
-      serviceName: service.name,
-      serviceImage: service.image,
-      price: service.price,
-      duration: service.duration,
-      date: selectedDate.toISOString().split("T")[0],
-      time: selectedTime,
-      userId: currentUser.user.id ?? "",
-      customerName: currentUser.user.name ?? "",
-      customerEmail: currentUser.user.email ?? "",
-    }),
-  }
-);
+    const response = await fetch(`${API_BASE_URL}/appointments`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({
+        serviceId: service.id,
+        serviceName: service.name,
+        serviceImage: service.image,
+        price: service.price,
+        duration: service.duration,
+        date: selectedDate.toISOString().split("T")[0],
+        time: selectedTime,
+        userId: currentUser.user.id ?? "",
+        customerName: currentUser.user.name ?? "",
+        customerEmail: currentUser.user.email ?? "",
+      }),
+    });
 
-    const data = await response.json()
+    const data = await response.json();
 
     if (response.ok) {
-      const redirectUrl =
-        data?.data?.redirectUrl ??
-        data?.redirectUrl ??
-        data?.url
-
-      if (!redirectUrl) {
-        toast.add({
-          id: bookingToastId,
-          type: "error",
-          title: "Checkout unavailable",
-          description:
-            "Stripe checkout URL was not returned by the server. Please try booking again.",
-        })
-        return
-      }
-
       toast.add({
         id: bookingToastId,
         type: "success",
-        title: "Appointment ready for payment",
-        description: "Taking you to secure checkout to finish your booking.",
-      })
-      window.location.assign(redirectUrl)
+        title: "Appointment Booked Successfully! 🎉",
+        description:
+          "Your appointment has been booked. You can make payment anytime from My Appointments in your dashboard.",
+      });
+      setSelectedDate(undefined);
+      setSelectedTime("");
     } else {
       toast.add({
         id: bookingToastId,
         type: "error",
         title: "Booking failed",
-        description: data.message || "We could not create your appointment. Please try again.",
-      })
+        description:
+          data.message ||
+          "We could not create your appointment. Please try again.",
+      });
     }
   } catch (error) {
-    console.log(error)
+    console.log(error);
     toast.add({
       id: bookingToastId,
       type: "error",
       title: "Booking failed",
       description:
         "We could not reach the booking service. Please check your connection and try again.",
-    })
+    });
   } finally {
-    setLoading(false)
+    setLoading(false);
   }
 }
   return (

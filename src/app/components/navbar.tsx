@@ -1,6 +1,7 @@
 'use client'
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Menu, Scissors } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { authClient } from "../lib/auth-client";
@@ -32,6 +33,7 @@ const navLinks = [
 export default function Navbar() {
   const { data: session, isPending } = authClient.useSession();
   const [menuOpen, setMenuOpen] = useState(false);
+  const router = useRouter();
 
   const userRole = session?.user
     ? (session.user as typeof session.user & { role?: string }).role
@@ -42,6 +44,7 @@ export default function Navbar() {
 
   const handleSignout = async () => {
     await authClient.signOut();
+    router.push("/");
   };
 
   return (
