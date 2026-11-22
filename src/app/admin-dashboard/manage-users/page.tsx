@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { authClient } from "@/app/lib/auth-client";
 
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -17,6 +18,7 @@ type User = {
 
 export default function ManageUsersPage() {
   const { data: session, isPending } = authClient.useSession();
+  const userRole = (session?.user as { role?: string } | undefined)?.role;
 
   const [users, setUsers] = useState<User[]>([]);
   const [search, setSearch] = useState("");
@@ -50,7 +52,7 @@ export default function ManageUsersPage() {
   }, []);
 
   useEffect(() => {
-    if (session?.user?.role === "admin") {
+    if (userRole === "admin") {
       fetchUsers();
     }
   }, [session, fetchUsers]);
@@ -104,7 +106,7 @@ export default function ManageUsersPage() {
     return <p className="p-6">Loading...</p>;
   }
 
-  if (!session?.user || session.user.role !== "admin") {
+  if (!session?.user || userRole !== "admin") {
     return <p className="p-6">Access denied. Admin only.</p>;
   }
 

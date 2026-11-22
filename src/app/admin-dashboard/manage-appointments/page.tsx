@@ -523,13 +523,14 @@ export default function ManageAppointmentsPage() {
       const response = await fetch(
         `${APPOINTMENTS_API}/${encodeURIComponent(appointment.id)}`,
         {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            status,
-            ...(status === "completed" ? { confirmedServiceProvided } : {}),
-          }),
-        }
+  method: "PATCH",
+  credentials: "include",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    status,
+    ...(status === "completed" ? { confirmedServiceProvided } : {}),
+  }),
+}
       )
       const data: unknown = await response.json().catch(() => null)
 

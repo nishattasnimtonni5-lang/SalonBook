@@ -109,10 +109,8 @@ const router = useRouter()
   })
 
   if (user.role === "admin") {
-    router.push("/admin-dashboard")
+    router.push(getCallbackURL() ?? "/admin-dashboard")
   } else if (user.role === "customer") {
-    // Return the customer to the page they were trying to use (e.g. the
-    // service details page) when one was supplied by the caller.
     router.push(getCallbackURL() ?? "/dashboard")
   }
 }

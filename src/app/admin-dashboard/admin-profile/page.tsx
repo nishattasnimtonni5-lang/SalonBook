@@ -45,7 +45,7 @@ export default function AdminProfilePage() {
 
   if (isPending) return <p>Loading...</p>;
 
-  if (!session?.user || session.user.role !== "admin") {
+  if (!session?.user || (session.user as { role?: string }).role !== "admin") {
     return <p>Access denied. Admin only.</p>;
   }
 

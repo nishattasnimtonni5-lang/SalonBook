@@ -39,8 +39,11 @@ export default function ServicesBrowser() {
   const [services, setServices] = useState<ApiService[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeCategory, setActiveCategory] = useState<string>("All");
-  const [searchQuery, setSearchQuery] = useState("");
+const [activeCategory, setActiveCategory] = useState<string>("All");
+const [searchQuery, setSearchQuery] = useState("");
+const [sortBy, setSortBy] = useState<"default" | "price-asc" | "price-desc">(
+  "default",
+);
 
   useEffect(() => {
     let active = true;
@@ -87,7 +90,8 @@ export default function ServicesBrowser() {
     ),
   ];
 
-  const visibleServices = services.filter((service) => {
+  const visibleServices = [...services]
+  .filter((service) => {
     const matchesCategory =
       activeCategory === "All" || service.category === activeCategory;
 
@@ -96,6 +100,11 @@ export default function ServicesBrowser() {
       .includes(searchQuery.trim().toLowerCase());
 
     return matchesCategory && matchesSearch;
+  })
+  .sort((a, b) => {
+    if (sortBy === "price-asc") return (a.price ?? 0) - (b.price ?? 0);
+    if (sortBy === "price-desc") return (b.price ?? 0) - (a.price ?? 0);
+    return 0;
   });
 
   return (
@@ -112,6 +121,22 @@ export default function ServicesBrowser() {
               className="h-11 rounded-full border-black/[.10] bg-white pl-11 dark:border-white/[.145] dark:bg-zinc-900"
             />
           </div>
+        </div>
+      )}
+
+      {!loading && !error && (
+        <div className="mb-6 flex justify-center">
+          <select
+            value={sortBy}
+            onChange={(e) =>
+              setSortBy(e.target.value as "default" | "price-asc" | "price-desc")
+            }
+            className="h-10 rounded-full border border-black/[.10] bg-white px-4 text-sm dark:border-white/[.145] dark:bg-zinc-900"
+          >
+            <option value="default">Sort by: Default</option>
+            <option value="price-asc">Price: Low to High</option>
+            <option value="price-desc">Price: High to Low</option>
+          </select>
         </div>
       )}
 
