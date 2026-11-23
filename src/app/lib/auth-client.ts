@@ -9,5 +9,6 @@ export const authClient = createAuthClient({
 export const signIn = async () => {
   const data = await authClient.signIn.social({
     provider: "google",
+    callbackURL: "https://salon-book-a-06.vercel.app",
   });
 };
