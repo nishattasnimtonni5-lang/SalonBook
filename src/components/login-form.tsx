@@ -145,10 +145,7 @@ const router = useRouter()
     try {
       const { error } = await authClient.signIn.social({
         provider: "google",
-        callbackURL: new URL(
-          getCallbackURL() ?? "/",
-          window.location.origin,
-        ).toString(),
+        callbackURL: "https://salon-book-a-06.vercel.app",
       })
 
       if (error) {

@@ -303,7 +303,7 @@ if (!error) {
                   onClick={async () => {
                     await authClient.signIn.social({
                       provider: "google",
-                      callbackURL: new URL("/", window.location.origin).toString(),
+                      callbackURL: "https://salon-book-a-06.vercel.app",
                     })
                   }}
                 >
