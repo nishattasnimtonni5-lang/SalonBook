@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { authClient } from "@/app/lib/auth-client"
+import { API_BASE_URL } from "@/app/lib/api/config"
 import { toast } from "@/components/ui/toast"
 import { useRef, useState } from "react"
 import Image from "next/image"
@@ -64,7 +65,7 @@ export function SignUpForm({
 if (!error) {
   // Exchange the verified BetterAuth session for a backend JWT.
   try {
-    const tokenRes = await fetch("http://localhost:8000/auth/token", {
+    const tokenRes = await fetch(`${API_BASE_URL}/auth/token`, {
       method: "POST",
       credentials: "include",
     });

@@ -1,7 +1,8 @@
 import { headers } from "next/headers"
 import { auth } from "@/app/lib/auth"
+import { SERVER_API_BASE_URL } from "@/app/lib/api/server-config"
 
-const EXPRESS_BASE = process.env.EXPRESS_API_URL ?? "http://localhost:8000"
+const EXPRESS_BASE = SERVER_API_BASE_URL
 
 type AdminGuard =
   | { ok: true }

@@ -8,6 +8,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import FavoriteButton from "./FavoriteButton";
+import { API_BASE_URL } from "@/app/lib/api/config";
 
 
 type ApiService = {
@@ -63,7 +64,7 @@ function getExtras(service: ApiService) {
 
 async function getFeaturedServices(): Promise<ApiService[]> {
   try {
-    const res = await fetch("http://localhost:8000/services/featured", {
+    const res = await fetch(`${API_BASE_URL}/services/featured`, {
       cache: "no-store",
     });
 

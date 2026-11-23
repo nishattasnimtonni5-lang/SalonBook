@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { CalendarDays, CheckCircle2, CreditCard, Scissors, Users } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { API_BASE_URL } from "@/app/lib/api/config";
 
 export default function AdminDashboardPage() {
   const [loading, setLoading] = useState(true);
@@ -21,7 +22,7 @@ export default function AdminDashboardPage() {
       try {
         const [apptRes, svcRes] = await Promise.all([
           fetch("/api/admin/appointments", { cache: "no-store" }),
-          fetch("http://localhost:8000/services", { cache: "no-store" }),
+          fetch(`${API_BASE_URL}/services`, { cache: "no-store" }),
         ]);
         const appts = await apptRes.json();
         const svcs = await svcRes.json();

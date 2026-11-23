@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import ServiceCard from "./service-card";
+import { API_BASE_URL } from "@/app/lib/api/config";
 
 type ApiService = {
   _id: string;
@@ -20,7 +21,7 @@ type ApiService = {
 };
 
 async function fetchServices(): Promise<ApiService[]> {
-  const res = await fetch("http://localhost:8000/services", {
+  const res = await fetch(`${API_BASE_URL}/services`, {
     cache: "no-store",
   });
   if (!res.ok) throw new Error("Failed to load services");

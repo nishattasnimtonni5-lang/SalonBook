@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { auth } from "@/app/lib/auth";
+import { API_BASE_URL } from "@/app/lib/api/config";
 import { ArrowLeft, CalendarCheck, Clock, Tag } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -84,7 +85,7 @@ function fromLocal(service: Service): ServiceDetail {
 }
 
 async function getApiServices(): Promise<ApiService[]> {
-  const res = await fetch("http://localhost:8000/services", {
+  const res = await fetch(`${API_BASE_URL}/services`, {
     cache: "no-store",
   });
   if (!res.ok) throw new Error(`services request failed: ${res.status}`);

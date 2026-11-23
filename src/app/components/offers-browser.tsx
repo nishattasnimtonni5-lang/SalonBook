@@ -27,6 +27,7 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import { Skeleton } from "@/components/ui/skeleton";
+import { OFFERS_API_URL } from "@/app/lib/api/config";
 import {
   filterValidOffers,
   formatDiscountLabel,
@@ -34,9 +35,6 @@ import {
   isOfferVisible,
   type Offer,
 } from "@/lib/offers";
-
-const OFFERS_API_URL =
-  process.env.NEXT_PUBLIC_OFFERS_API_URL ?? "http://localhost:8000/offers";
 
 export default function OffersBrowser() {
   const [offers, setOffers] = useState<Offer[]>([]);

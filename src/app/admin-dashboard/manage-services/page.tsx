@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/select";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { toast } from "@/components/ui/toast";
+import { API_BASE_URL } from "@/app/lib/api/config";
 
 type Service = {
   _id: string;
@@ -36,7 +37,7 @@ type Service = {
   status: string;
 };
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_URL = API_BASE_URL;
 
 const emptyService = {
   name: "",

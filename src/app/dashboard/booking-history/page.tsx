@@ -35,8 +35,9 @@ import {
 } from "@/components/ui/empty"
 import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
+import { API_BASE_URL } from "@/app/lib/api/config"
 
-const API_URL = "http://localhost:8000/appointments"
+const API_URL = `${API_BASE_URL}/appointments`
 
 type Appointment = {
   _id: string

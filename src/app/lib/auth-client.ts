@@ -1,7 +1,15 @@
 import { createAuthClient } from "better-auth/react"
+import { API_BASE_URL } from "@/app/lib/api/config"
+
 export const authClient = createAuthClient({
-    /** The base URL of the server (optional if you're using the same domain) */
-    baseURL: "http://localhost:8000",
+    /**
+     * Backend origin. `basePath` is intentionally left unset so better-auth's
+     * default `/api/auth` is preserved — requests go to
+     * `{baseURL}/api/auth/*`, which Express serves via `toNodeHandler(auth)`.
+     * In development this resolves to http://localhost:8000, in production to
+     * the deployed backend.
+     */
+    baseURL: API_BASE_URL,
       
 })
 export const signIn = async () => {

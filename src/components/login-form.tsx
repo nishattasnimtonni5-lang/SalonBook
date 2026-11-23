@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { authClient } from "@/app/lib/auth-client"
+import { API_BASE_URL } from "@/app/lib/api/config"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { toast } from "@/components/ui/toast"
 import { useState } from "react"
@@ -103,7 +104,7 @@ const router = useRouter()
 
   // Exchange the verified BetterAuth session for a backend JWT.
   try {
-    const tokenRes = await fetch("http://localhost:8000/auth/token", {
+    const tokenRes = await fetch(`${API_BASE_URL}/auth/token`, {
       method: "POST",
       credentials: "include",
     });

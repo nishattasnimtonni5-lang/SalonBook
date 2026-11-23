@@ -2,9 +2,10 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { authClient } from "@/app/lib/auth-client";
+import { API_BASE_URL } from "@/app/lib/api/config";
 
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_URL = API_BASE_URL;
 
 type User = {
   id: string;

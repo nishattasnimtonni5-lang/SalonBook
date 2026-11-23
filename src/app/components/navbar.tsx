@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Menu, Scissors } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { authClient } from "../lib/auth-client";
+import { API_BASE_URL } from "@/app/lib/api/config";
 
 import {
   DropdownMenu,
@@ -45,7 +46,7 @@ export default function Navbar() {
   const handleSignout = async () => {
     await authClient.signOut();
     try {
-      await fetch("http://localhost:8000/auth/logout", {
+      await fetch(`${API_BASE_URL}/auth/logout`, {
         method: "POST",
         credentials: "include",
       });

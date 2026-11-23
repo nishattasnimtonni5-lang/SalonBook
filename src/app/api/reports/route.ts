@@ -4,6 +4,7 @@ import {
   sanitizeReportForm,
   validateReportForm,
 } from "@/lib/reports"
+import { REPORTS_API_URL } from "@/app/lib/api/server-config"
 
 /**
  * Server-side endpoint for submitting a "Report an Issue" form.
@@ -15,9 +16,6 @@ import {
  *   emails the admin. The shared INTERNAL_API_SECRET proves the call comes
  *   from this server, so the Express endpoint cannot be abused directly.
  */
-
-const REPORTS_API_URL =
-  process.env.REPORTS_API_URL ?? "http://localhost:8000/reports"
 
 type ForwardResult = {
   ok: boolean

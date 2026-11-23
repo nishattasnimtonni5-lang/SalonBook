@@ -50,9 +50,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { API_BASE_URL } from "@/app/lib/api/config"
 
-const API_URL = "http://localhost:8000/appointments"
-const BOOKINGS_URL = "http://localhost:8000/bookings"
+const API_URL = `${API_BASE_URL}/appointments`
+const BOOKINGS_URL = `${API_BASE_URL}/bookings`
 
 type Appointment = {
   _id: string

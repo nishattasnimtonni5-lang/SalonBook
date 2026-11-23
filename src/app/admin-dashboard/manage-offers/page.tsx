@@ -4,6 +4,7 @@
 import { useRef, useState } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { OFFERS_API_URL } from "@/app/lib/api/config";
 import {
   Card,
   CardContent,
@@ -147,16 +148,13 @@ export default function ManageOffersPage() {
     });
 
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/offers`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(offerData),
-        }
-      );
+      const res = await fetch(OFFERS_API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(offerData),
+      });
 
       const data = await res.json();
 

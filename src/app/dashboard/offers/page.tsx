@@ -29,9 +29,7 @@ import {
   isOfferExpired,
   type Offer,
 } from "@/lib/offers"
-
-const OFFERS_API_URL =
-  process.env.NEXT_PUBLIC_OFFERS_API_URL ?? "http://localhost:8000/offers"
+import { OFFERS_API_URL } from "@/app/lib/api/config"
 
 const MyOffersPage = () => {
   const [offers, setOffers] = useState<Offer[]>([])
