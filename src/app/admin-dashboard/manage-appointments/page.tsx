@@ -543,14 +543,28 @@ export default function ManageAppointmentsPage() {
         )
       }
 
-      setAppointments((current) =>
-        current.map((item) =>
-          item.id === appointment.id ? { ...item, status } : item
+      // Express answers { success, modifiedCount } — it does not echo the
+      // record — so re-read the list to show the status the database
+      // actually holds rather than assuming the requested one stuck.
+      try {
+        const fresh = await fetchAppointments()
+        setAppointments(fresh)
+        setError(null)
+        setDetails(
+          (current) =>
+            fresh.find((item) => item.id === current?.id) ?? current
         )
-      )
-      setDetails((current) =>
-        current?.id === appointment.id ? { ...current, status } : current
-      )
+      } catch {
+        // Offline/stale refresh: fall back to the status we just wrote.
+        setAppointments((current) =>
+          current.map((item) =>
+            item.id === appointment.id ? { ...item, status } : item
+          )
+        )
+        setDetails((current) =>
+          current?.id === appointment.id ? { ...current, status } : current
+        )
+      }
       return true
     } catch (err) {
       const message =
@@ -569,6 +583,24 @@ export default function ManageAppointmentsPage() {
     appointment: Appointment,
     status: AppointmentStatus
   ) => {
+    // Transition rules, enforced here as well as in the <Select> so they hold
+    // even for unknown/legacy statuses where every option stays enabled:
+    // only a pending appointment may be confirmed, and only pending or
+    // confirmed appointments may be cancelled.
+    const current = normalizeStatus(appointment.status)
+    if (status === "confirmed" && current !== "pending") {
+      setError("Only pending appointments can be confirmed.")
+      return
+    }
+    if (
+      status === "cancelled" &&
+      current !== "pending" &&
+      current !== "confirmed"
+    ) {
+      setError("Only pending or confirmed appointments can be cancelled.")
+      return
+    }
+
     if (status === "completed") {
       if (!canComplete(appointment)) {
         setError(

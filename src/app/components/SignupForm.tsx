@@ -302,7 +302,7 @@ if (!error) {
                   onClick={async () => {
                     await authClient.signIn.social({
                       provider: "google",
-                      callbackURL: "/",
+                      callbackURL: new URL("/", window.location.origin).toString(),
                     })
                   }}
                 >

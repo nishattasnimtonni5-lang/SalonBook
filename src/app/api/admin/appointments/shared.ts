@@ -48,6 +48,12 @@ export async function callAppointmentsApi(
     }
   }
 
+  // Express guards PATCH /appointments/:id with `requireAdmin`, which resolves
+  // the better-auth session from the incoming cookie. The internal secret alone
+  // only unlocks GET /appointments, so the caller's session cookie has to be
+  // forwarded or every status update is rejected with 401.
+  const cookie = (await headers()).get("cookie")
+
   let response: Response
   try {
     response = await fetch(`${EXPRESS_BASE}${path}`, {
@@ -55,6 +61,7 @@ export async function callAppointmentsApi(
       headers: {
         "Content-Type": "application/json",
         "x-internal-secret": secret,
+        ...(cookie ? { cookie } : {}),
       },
       body: init.body === undefined ? undefined : JSON.stringify(init.body),
       cache: "no-store",

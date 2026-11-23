@@ -39,6 +39,11 @@ const data = {
 
     },
     {
+      title: "Manage Appointments",
+      url: "/admin-dashboard/manage-appointments",
+
+    },
+    {
       title: "Manage Users",
       url: "/admin-dashboard/manage-users",
       

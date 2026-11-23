@@ -144,7 +144,10 @@ const router = useRouter()
     try {
       const { error } = await authClient.signIn.social({
         provider: "google",
-        callbackURL: getCallbackURL() ?? "/dashboard",
+        callbackURL: new URL(
+          getCallbackURL() ?? "/",
+          window.location.origin,
+        ).toString(),
       })
 
       if (error) {
