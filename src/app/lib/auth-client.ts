@@ -4,9 +4,6 @@ import { createAuthClient } from "better-auth/react"
 
 export const authClient = createAuthClient({
   baseURL: "https://salon-book-server-six.vercel.app",
-  fetchOptions: {
-    credentials: "include",
-  },
 })
 
 export const signIn = async () => {
