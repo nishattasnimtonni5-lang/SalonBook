@@ -19,7 +19,6 @@ import { API_BASE_URL } from "@/app/lib/api/config"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { toast } from "@/components/ui/toast"
 import { useState } from "react"
-import Image from "next/image"
 import { useRouter } from "next/navigation"
 
 
@@ -109,7 +108,7 @@ const router = useRouter()
       credentials: "include",
     });
     if (!tokenRes.ok) throw new Error("JWT issuance failed");
-  } catch (err) {
+  } catch {
     toast.add({
       id: signInId,
       type: "error",
