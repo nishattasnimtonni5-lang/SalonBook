@@ -22,11 +22,7 @@ user: {
     },
   },
 },
-session: {
-  cookieCache: {
-    enabled: false,
-  },
-},
+
   emailAndPassword: { 
     enabled: true, 
   }, 
