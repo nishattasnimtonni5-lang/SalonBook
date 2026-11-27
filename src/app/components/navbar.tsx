@@ -11,14 +11,20 @@ import { API_BASE_URL } from "@/app/lib/api/config";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
+  DropdownGroup,
+  DropdownItem,
+  DropdownLabel,
+  DropdownSeparator,
+  DropdownTrigger,
 } from "@/components/ui/dropdown-menu";
 
-
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -26,20 +32,19 @@ const navLinks = [
   { href: "/offers", label: "Offers" },
   { href: "/about", label: "About Us" },
 ];
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-
 
 export default function Navbar() {
   const { data: session, isPending } = authClient.useSession();
- console.log("Session role:", (session?.user as { role?: string } | undefined)?.role);
-console.log("Session isBlocked:", (session?.user as { isBlocked?: boolean } | undefined)?.isBlocked);
+
   const [menuOpen, setMenuOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+
   const router = useRouter();
   const pathname = usePathname();
 
-  const authenticated =
-    !isPending && !signingOut && !!session?.user;
+  const showAuthLoading = isPending || signingOut;
+
+  const authenticated = !showAuthLoading && !!session?.user;
 
   const userRole = authenticated
     ? (session.user as typeof session.user & { role?: string }).role
@@ -49,6 +54,7 @@ console.log("Session isBlocked:", (session?.user as { isBlocked?: boolean } | un
     userRole === "admin" ? "/admin-dashboard" : "/dashboard";
 
   const currentPage = pathname || "/";
+
   const signInHref = `/signin?callbackURL=${encodeURIComponent(currentPage)}`;
   const signUpHref = `/signup?callbackURL=${encodeURIComponent(currentPage)}`;
 
@@ -77,7 +83,6 @@ console.log("Session isBlocked:", (session?.user as { isBlocked?: boolean } | un
   };
 
   return (
-    
     <div className="sticky top-0 z-50 w-full border-b border-black/[.08] bg-white/80 backdrop-blur dark:border-white/[.145] dark:bg-black/80">
       <nav className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-4 px-6">
         <Link
@@ -87,6 +92,7 @@ console.log("Session isBlocked:", (session?.user as { isBlocked?: boolean } | un
           <span className="flex size-8 items-center justify-center rounded-full bg-rose-600 text-white shadow-sm shadow-rose-500/30">
             <Scissors className="size-4" />
           </span>
+
           <span className="text-lg font-semibold tracking-tight">
             SalonBook
           </span>
@@ -114,7 +120,9 @@ console.log("Session isBlocked:", (session?.user as { isBlocked?: boolean } | un
           </li>
         </ul>
 
-        {authenticated ? (
+        {showAuthLoading ? (
+          <div className="h-9 w-20" />
+        ) : authenticated ? (
           <DropdownMenu>
             <DropdownMenuTrigger render={<button />}>
               <Avatar>
@@ -122,6 +130,7 @@ console.log("Session isBlocked:", (session?.user as { isBlocked?: boolean } | un
                   src={session.user.image || ""}
                   alt={session.user.name}
                 />
+
                 <AvatarFallback>
                   {session.user.name?.charAt(0)?.toUpperCase() || "U"}
                 </AvatarFallback>
@@ -132,10 +141,15 @@ console.log("Session isBlocked:", (session?.user as { isBlocked?: boolean } | un
               <DropdownMenuGroup>
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
+
                 <DropdownMenuItem>Profile</DropdownMenuItem>
-               <DropdownMenuItem render={<Link href={dashboardLink} />}>
-  Dashboard
-</DropdownMenuItem>
+
+                <DropdownMenuItem
+                  render={<Link href={dashboardLink} />}
+                >
+                  Dashboard
+                </DropdownMenuItem>
+
                 <DropdownMenuItem>Settings</DropdownMenuItem>
               </DropdownMenuGroup>
 
@@ -146,7 +160,7 @@ console.log("Session isBlocked:", (session?.user as { isBlocked?: boolean } | un
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-        ) : !isPending && !signingOut ? (
+        ) : (
           <div className="flex items-center gap-2 sm:gap-3">
             <Link
               href={signInHref}
@@ -154,6 +168,7 @@ console.log("Session isBlocked:", (session?.user as { isBlocked?: boolean } | un
             >
               Sign In
             </Link>
+
             <Link
               href={signUpHref}
               className="flex h-9 items-center justify-center rounded-full bg-rose-600 px-5 text-sm font-medium text-white transition-colors hover:bg-rose-700"
@@ -161,8 +176,6 @@ console.log("Session isBlocked:", (session?.user as { isBlocked?: boolean } | un
               Sign Up
             </Link>
           </div>
-        ) : (
-          <div className="h-9 w-20" />
         )}
 
         <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
@@ -180,6 +193,7 @@ console.log("Session isBlocked:", (session?.user as { isBlocked?: boolean } | un
                 <span className="flex size-7 items-center justify-center rounded-full bg-rose-600 text-white">
                   <Scissors className="size-3.5" />
                 </span>
+
                 SalonBook
               </SheetTitle>
             </SheetHeader>
@@ -205,7 +219,7 @@ console.log("Session isBlocked:", (session?.user as { isBlocked?: boolean } | un
               </Link>
             </nav>
 
-            {authenticated ? (
+            {showAuthLoading ? null : authenticated ? (
               <div className="mt-auto flex flex-col gap-2 px-4 pb-4">
                 <button
                   onClick={handleSignout}
@@ -214,7 +228,7 @@ console.log("Session isBlocked:", (session?.user as { isBlocked?: boolean } | un
                   Sign Out
                 </button>
               </div>
-            ) : !isPending && !signingOut ? (
+            ) : (
               <div className="mt-auto flex flex-col gap-2 px-4 pb-4">
                 <Link
                   href={signInHref}
@@ -223,6 +237,7 @@ console.log("Session isBlocked:", (session?.user as { isBlocked?: boolean } | un
                 >
                   Sign In
                 </Link>
+
                 <Link
                   href={signUpHref}
                   onClick={() => setMenuOpen(false)}
@@ -231,11 +246,10 @@ console.log("Session isBlocked:", (session?.user as { isBlocked?: boolean } | un
                   Sign Up
                 </Link>
               </div>
-            ) : null}
+            )}
           </SheetContent>
         </Sheet>
       </nav>
     </div>
-    
   );
 }
