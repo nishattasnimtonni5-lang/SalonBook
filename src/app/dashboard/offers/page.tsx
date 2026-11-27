@@ -310,21 +310,16 @@ const MyOffersPage = () => {
 
               <div className="px-6 pb-4">
                 <Button
-                  type="button"
-                  render={
-                    <Link
-                      href={
-                        offer.applicableService &&
-                        offer.applicableService !== "All services"
-                          ? `/services/${encodeURIComponent(offer.applicableService)}?offerId=${encodeURIComponent(offer._id)}&offerTitle=${encodeURIComponent(offer.title)}&discountType=${offer.discountType}&discountValue=${offer.discountValue}&promoCode=${encodeURIComponent(offer.promoCode || offer.couponCode || "")}`
-                          : `/services?offerId=${encodeURIComponent(offer._id)}&offerTitle=${encodeURIComponent(offer.title)}&discountType=${offer.discountType}&discountValue=${offer.discountValue}&promoCode=${encodeURIComponent(offer.promoCode || offer.couponCode || "")}`
-                      }
-                    />
-                  }
-                  className="w-full rounded-full bg-rose-600 text-white shadow-lg shadow-rose-500/25 hover:bg-rose-700"
-                >
-                  Book Appointment
-                </Button>
+  type="button"
+  render={
+    <Link
+      href={`/services/${encodeURIComponent(offer.applicableService)}?offerId=${offer._id}&offerTitle=${encodeURIComponent(offer.title)}&discountType=${offer.discountType}&discountValue=${offer.discountValue}&promoCode=${encodeURIComponent(offer.promoCode || offer.couponCode || "")}`}
+    />
+  }
+  className="w-full rounded-full bg-rose-600 text-white shadow-lg shadow-rose-500/25 hover:bg-rose-700"
+>
+  Book Appointment
+</Button>
               </div>
 
               {offer.terms ? (
