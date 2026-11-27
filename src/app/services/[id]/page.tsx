@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { services, type Service } from "@/app/data/services";
 import SessionGate from "@/app/components/session-gate";
 import AppointmentForm from "./appointmentForm";
+import BlockedUserGuard from "@/app/components/BlockedUserGuard";
 
 type ApiService = {
   _id: string;
@@ -145,7 +146,7 @@ const ServiceDetailsPage = async ({ params }: PageProps) => {
   // could never see it and bounced every visitor back to /signin.
   return (
     <SessionGate>
-    
+    <BlockedUserGuard>
     <div className="flex flex-1 flex-col">
       {/* Page header */}
       <section className="relative overflow-hidden border-b border-black/[.06] bg-gradient-to-br from-rose-50 via-white to-purple-50 dark:border-white/[.08] dark:from-rose-950/30 dark:via-zinc-950 dark:to-purple-950/30">
@@ -223,7 +224,9 @@ const ServiceDetailsPage = async ({ params }: PageProps) => {
         </div>
       </section>
     </div>
+    </BlockedUserGuard>
     </SessionGate>
+  
   );
 };
 
