@@ -153,7 +153,7 @@ export default function AppointmentForm({ service, offer }: AppointmentFormProps
     a.serviceId === service.id &&
     a.date === selectedDate.toISOString().split("T")[0] &&
     a.time === selectedTime,
-
+)
 
       if (duplicate) {
         toast.add({
