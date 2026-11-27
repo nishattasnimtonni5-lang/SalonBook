@@ -40,27 +40,33 @@ const MyOffersPage = () => {
 
   const fetchOffers = useCallback(async (): Promise<Offer[]> => {
     const response = await fetch(OFFERS_API_URL, { cache: "no-store" })
+
     if (!response.ok) {
       throw new Error("Offers could not be loaded.")
     }
 
     const data = await response.json()
+
     if (!Array.isArray(data)) {
       throw new Error("Unexpected offers response.")
     }
+
     return filterValidOffers(data)
   }, [])
 
   useEffect(() => {
     let active = true
+
     fetchOffers()
       .then((data) => {
         if (!active) return
+
         setOffers(data)
         setError(null)
       })
       .catch((err: unknown) => {
         if (!active) return
+
         setOffers([])
         setError(
           err instanceof Error
@@ -71,6 +77,7 @@ const MyOffersPage = () => {
       .finally(() => {
         if (active) setLoading(false)
       })
+
     return () => {
       active = false
     }
@@ -79,6 +86,7 @@ const MyOffersPage = () => {
   const reload = () => {
     setLoading(true)
     setError(null)
+
     fetchOffers()
       .then((data) => {
         setOffers(data)
@@ -97,35 +105,38 @@ const MyOffersPage = () => {
 
   const copyCoupon = async (offer: Offer) => {
     const promoCode = offer.promoCode || offer.couponCode
+
     if (!promoCode) return
 
     try {
       await navigator.clipboard.writeText(promoCode)
     } catch {
-      // Clipboard blocked (non-secure context): temporary textarea fallback
-      // so the button still works; the code is visible on the card anyway.
       const textarea = document.createElement("textarea")
       textarea.value = promoCode
       textarea.style.position = "fixed"
       textarea.style.opacity = "0"
       document.body.appendChild(textarea)
       textarea.select()
+
       try {
         document.execCommand("copy")
       } catch {
-        // Ignore — nothing else we can do.
       }
+
       document.body.removeChild(textarea)
     }
 
     setCopiedId(offer._id)
+
     window.setTimeout(
       () => setCopiedId((id) => (id === offer._id ? null : id)),
       2000
     )
   }
 
-  const visibleOffers = offers.filter((offer) => !isOfferExpired(offer.expiryDate))
+  const visibleOffers = offers.filter(
+    (offer) => !isOfferExpired(offer.expiryDate)
+  )
 
   return (
     <div className="flex flex-col gap-4">
@@ -133,6 +144,7 @@ const MyOffersPage = () => {
         <h1 className="font-heading text-2xl font-semibold tracking-tight">
           My Offers
         </h1>
+
         <p className="text-sm text-balance text-muted-foreground">
           Active deals picked for you — copy a coupon code and use it while
           booking your next appointment.
@@ -151,6 +163,7 @@ const MyOffersPage = () => {
               <AlertCircle className="size-4 shrink-0" aria-hidden />
               {error}
             </span>
+
             <Button
               type="button"
               size="sm"
@@ -174,6 +187,7 @@ const MyOffersPage = () => {
               <EmptyTitle className="text-lg">
                 No offers available right now.
               </EmptyTitle>
+
               <EmptyDescription>
                 We don&apos;t have any active deals at the moment — check back
                 soon, new offers are added regularly.
@@ -211,12 +225,12 @@ const MyOffersPage = () => {
                 )}
               </div>
 
-              {/* Rose gradient header with the discount label */}
               <div className="relative overflow-hidden bg-gradient-to-br from-rose-500 via-rose-500 to-pink-500 px-5 py-5 text-white">
                 <div
                   aria-hidden="true"
                   className="absolute -right-6 -top-8 size-28 rounded-full bg-white/15"
                 />
+
                 <div
                   aria-hidden="true"
                   className="absolute -bottom-10 -left-6 size-24 rounded-full bg-white/10"
@@ -225,11 +239,13 @@ const MyOffersPage = () => {
                 <div className="relative flex items-start justify-between gap-3">
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-xs font-semibold backdrop-blur">
                     <Percent className="size-3.5" aria-hidden />
+
                     {formatDiscountLabel(
                       offer.discountType,
                       offer.discountValue
                     )}
                   </span>
+
                   <Badge className="border border-white/40 bg-white/90 text-rose-600 backdrop-blur hover:bg-white dark:bg-zinc-900/90 dark:text-rose-400">
                     {offer.applicableService || "All services"}
                   </Badge>
@@ -242,17 +258,18 @@ const MyOffersPage = () => {
 
               <CardHeader className="gap-2 pb-2">
                 <CardTitle className="sr-only">{offer.title}</CardTitle>
+
                 <p className="text-sm leading-relaxed text-muted-foreground">
                   {offer.description}
                 </p>
               </CardHeader>
 
               <CardContent className="flex flex-col gap-3 pt-0">
-                {/* Coupon code + copy button */}
                 <div className="flex items-center justify-between gap-2 rounded-xl border border-dashed border-rose-300 bg-rose-50 px-3 py-2.5 dark:border-rose-800 dark:bg-rose-950/30">
                   <span className="truncate font-mono text-sm font-bold tracking-widest text-rose-600 dark:text-rose-400">
                     {offer.promoCode || "—"}
                   </span>
+
                   {offer.promoCode ? (
                     <Button
                       type="button"
@@ -276,12 +293,12 @@ const MyOffersPage = () => {
                   ) : null}
                 </div>
 
-                {/* Expiry + minimum booking */}
                 <div className="flex flex-col gap-1.5 text-xs text-zinc-500 dark:text-zinc-400">
                   <span className="inline-flex items-center gap-1.5">
                     <Clock className="size-3.5 text-rose-500" aria-hidden />
                     Expires on {formatExpiryDate(offer.expiryDate)}
                   </span>
+
                   {offer.minBookingAmount > 0 ? (
                     <span className="inline-flex items-center gap-1.5">
                       <Ticket className="size-3.5 text-rose-500" aria-hidden />
@@ -291,7 +308,6 @@ const MyOffersPage = () => {
                 </div>
               </CardContent>
 
-              {/* Book Appointment button */}
               <div className="px-6 pb-4">
                 <Button
                   type="button"
@@ -301,7 +317,7 @@ const MyOffersPage = () => {
                         offer.applicableService &&
                         offer.applicableService !== "All services"
                           ? `/services/${encodeURIComponent(offer.applicableService)}?offerId=${encodeURIComponent(offer._id)}&offerTitle=${encodeURIComponent(offer.title)}&discountType=${offer.discountType}&discountValue=${offer.discountValue}&promoCode=${encodeURIComponent(offer.promoCode || offer.couponCode || "")}`
-                          : "/services"
+                          : `/services?offerId=${encodeURIComponent(offer._id)}&offerTitle=${encodeURIComponent(offer.title)}&discountType=${offer.discountType}&discountValue=${offer.discountValue}&promoCode=${encodeURIComponent(offer.promoCode || offer.couponCode || "")}`
                       }
                     />
                   }
@@ -316,6 +332,7 @@ const MyOffersPage = () => {
                   <span className="text-[11px] font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
                     Terms &amp; Conditions
                   </span>
+
                   <p className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
                     {offer.terms}
                   </p>
