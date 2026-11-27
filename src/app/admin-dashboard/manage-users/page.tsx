@@ -1,9 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { authClient } from "@/app/lib/auth-client";
 import { API_BASE_URL } from "@/app/lib/api/config";
-
+import { Button } from "@/components/ui/button";
+import { Eye } from "lucide-react";
 
 const API_URL = API_BASE_URL;
 
@@ -42,11 +44,16 @@ export default function ManageUsersPage() {
         throw new Error(data.message || "Failed to load users");
       }
 
-      setUsers(Array.isArray(data) ? data : data.users || []);
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Something went wrong"
+      const userList = Array.isArray(data) ? data : data.users || [];
+
+      setUsers(
+        userList.map((user: User & { _id?: string }) => ({
+          ...user,
+          id: user.id || user._id,
+        }))
       );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -56,7 +63,7 @@ export default function ManageUsersPage() {
     if (userRole === "admin") {
       fetchUsers();
     }
-  }, [session, fetchUsers]);
+  }, [userRole, fetchUsers]);
 
   const handleBlockToggle = async (user: User) => {
     const action = user.isBlocked ? "unblock" : "block";
@@ -86,9 +93,7 @@ export default function ManageUsersPage() {
 
       await fetchUsers();
     } catch (err) {
-      alert(
-        err instanceof Error ? err.message : "Something went wrong"
-      );
+      alert(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setUpdatingId(null);
     }
@@ -167,9 +172,7 @@ export default function ManageUsersPage() {
             </button>
           </div>
         ) : filteredUsers.length === 0 ? (
-          <p className="py-10 text-center text-gray-500">
-            No users found.
-          </p>
+          <p className="py-10 text-center text-gray-500">No users found.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[850px] text-left">
@@ -202,9 +205,7 @@ export default function ManageUsersPage() {
 
                         <div>
                           <p className="font-medium">{user.name}</p>
-                          <p className="text-sm text-gray-500">
-                            {user.email}
-                          </p>
+                          <p className="text-sm text-gray-500">{user.email}</p>
                         </div>
                       </div>
                     </td>
@@ -235,12 +236,12 @@ export default function ManageUsersPage() {
 
                     <td className="p-3">
                       <div className="flex items-center gap-2">
-                        <a
-                          href={`/admin/users/${user.id}/transactions`}
-                          className="rounded-lg border px-3 py-2 text-sm hover:bg-gray-50"
-                        >
-                          Transactions
-                        </a>
+                        <Button variant="outline" size="sm" asChild>
+                          <Link href={`/admin/users/${user.id}/transactions`}>
+                            <Eye className="size-4" />
+                            View
+                          </Link>
+                        </Button>
 
                         {user.role !== "admin" && (
                           <button

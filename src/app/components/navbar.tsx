@@ -1,4 +1,5 @@
-'use client'
+"use client";
+
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -34,9 +35,13 @@ const navLinks = [
 export default function Navbar() {
   const { data: session, isPending } = authClient.useSession();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
   const router = useRouter();
 
-  const userRole = session?.user
+  const authenticated =
+    !isPending && !signingOut && !!session?.user;
+
+  const userRole = authenticated
     ? (session.user as typeof session.user & { role?: string }).role
     : undefined;
 
@@ -44,17 +49,28 @@ export default function Navbar() {
     userRole === "admin" ? "/admin-dashboard" : "/dashboard";
 
   const handleSignout = async () => {
-    await authClient.signOut();
+    setSigningOut(true);
+
     try {
+      await authClient.signOut();
+
       await fetch(`${API_BASE_URL}/auth/logout`, {
         method: "POST",
         credentials: "include",
       });
     } catch (err) {
       console.error("Logout request failed", err);
+    } finally {
+      setMenuOpen(false);
+      router.replace("/");
+      router.refresh();
+      setSigningOut(false);
     }
-    router.push("/");
   };
+
+  const dashboardHref = authenticated
+    ? dashboardLink
+    : "/signin?callbackURL=/";
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-black/[.08] bg-white/80 backdrop-blur dark:border-white/[.145] dark:bg-black/80">
@@ -82,9 +98,10 @@ export default function Navbar() {
               </Link>
             </li>
           ))}
+
           <li>
             <Link
-              href={session ? dashboardLink : "/signin?callbackURL=/dashboard"}
+              href={dashboardHref}
               className="text-sm font-medium text-zinc-600 transition-colors hover:text-black dark:text-zinc-400 dark:hover:text-zinc-50"
             >
               Dashboard
@@ -92,17 +109,16 @@ export default function Navbar() {
           </li>
         </ul>
 
-        {session ? (
+        {authenticated ? (
           <DropdownMenu>
             <DropdownMenuTrigger render={<button />}>
               <Avatar>
                 <AvatarImage
                   src={session.user.image || ""}
                   alt={session.user.name}
-                  onError={() => console.log("Google image failed to load")}
                 />
                 <AvatarFallback>
-                  {session.user.name?.charAt(0)}
+                  {session.user.name?.charAt(0)?.toUpperCase() || "U"}
                 </AvatarFallback>
               </Avatar>
             </DropdownMenuTrigger>
@@ -112,7 +128,7 @@ export default function Navbar() {
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>Profile</DropdownMenuItem>
-                <DropdownMenuItem>
+                <DropdownMenuItem asChild>
                   <Link href={dashboardLink}>Dashboard</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem>Settings</DropdownMenuItem>
@@ -125,7 +141,7 @@ export default function Navbar() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-        ) : (
+        ) : !isPending && !signingOut ? (
           <div className="flex items-center gap-2 sm:gap-3">
             <Link
               href="/signin"
@@ -140,6 +156,8 @@ export default function Navbar() {
               Sign Up
             </Link>
           </div>
+        ) : (
+          <div className="h-9 w-20" />
         )}
 
         <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
@@ -174,7 +192,7 @@ export default function Navbar() {
               ))}
 
               <Link
-                href={session ? dashboardLink : "/signin?callbackURL=/dashboard"}
+                href={dashboardHref}
                 onClick={() => setMenuOpen(false)}
                 className="rounded-lg px-3 py-2.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-muted hover:text-black dark:text-zinc-300 dark:hover:text-zinc-50"
               >
@@ -182,19 +200,16 @@ export default function Navbar() {
               </Link>
             </nav>
 
-            {session ? (
+            {authenticated ? (
               <div className="mt-auto flex flex-col gap-2 px-4 pb-4">
                 <button
-                  onClick={() => {
-                    handleSignout();
-                    setMenuOpen(false);
-                  }}
+                  onClick={handleSignout}
                   className="flex h-9 items-center justify-center rounded-full border border-black/[.08] px-5 text-sm font-medium text-zinc-700 transition-colors hover:bg-black/[.04] dark:border-white/[.145] dark:text-zinc-300"
                 >
                   Sign Out
                 </button>
               </div>
-            ) : (
+            ) : !isPending && !signingOut ? (
               <div className="mt-auto flex flex-col gap-2 px-4 pb-4">
                 <Link
                   href="/signin"
@@ -211,11 +226,10 @@ export default function Navbar() {
                   Sign Up
                 </Link>
               </div>
-            )}
+            ) : null}
           </SheetContent>
         </Sheet>
       </nav>
     </header>
   );
-
 }
