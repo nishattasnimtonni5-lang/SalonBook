@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
 import SessionGate from "@/app/components/session-gate";
+import BlockedUserGuard from './../components/BlockedUserGuard';
 
 export default function DashboardLayout({
   children,
@@ -21,6 +22,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
+    <BlockedUserGuard>
     <SessionGate>
       <SidebarProvider
         style={
@@ -51,5 +53,6 @@ export default function DashboardLayout({
         </SidebarInset>
       </SidebarProvider>
     </SessionGate>
+    </BlockedUserGuard>
   );
 }
