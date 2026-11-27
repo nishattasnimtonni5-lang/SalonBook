@@ -60,6 +60,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Textarea } from "@/components/ui/textarea"
 import {
   EMPTY_OFFER_FORM,
+  filterValidOffers,
   formatDiscountLabel,
   formatExpiryDate,
   isOfferExpired,
@@ -153,7 +154,10 @@ const AdminOffersPage = () => {
       throw new Error(message)
     }
 
-    return Array.isArray(data) ? (data as Offer[]) : []
+    // Express answers the raw stored documents (status/promoCode/category
+    // shape); the shared normalizer maps them onto the admin form shape so
+    // badges and edit dialogs read real values instead of undefined.
+    return filterValidOffers(data)
   }, [])
 
   // Event-handler version (buttons, post-save refresh): may set state

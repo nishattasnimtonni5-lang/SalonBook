@@ -1,9 +1,8 @@
-import { headers } from "next/headers"
-import { auth } from "@/app/lib/auth"
 import {
   sanitizeReportForm,
   validateReportForm,
 } from "@/lib/reports"
+import { getRequestSession } from "@/app/lib/server-session"
 import { REPORTS_API_URL } from "@/app/lib/api/server-config"
 
 /**
@@ -76,7 +75,7 @@ async function forwardToReportsApi(
 }
 
 export async function POST(request: Request) {
-  const session = await auth.api.getSession({ headers: await headers() })
+  const session = await getRequestSession()
 
   if (!session?.user) {
     return Response.json(

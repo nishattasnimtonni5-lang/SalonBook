@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter, usePathname } from "next/navigation"
+import { useMemo, useState } from "react"
+import { useRouter, usePathname, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Calendar } from "@/components/ui/calendar"
@@ -18,13 +18,59 @@ type AppointmentFormProps = {
     duration: string
     status?: string
   }
+  // Optional offer prefill, passed via query params when a customer books
+  // from a published offer card ("Book Appointment" button).
+  offer?: {
+    id: string
+    title: string
+    discountType: "percentage" | "fixed"
+    discountValue: number
+    promoCode: string
+  }
 }
 
-export default function AppointmentForm({ service }: AppointmentFormProps) {
+// Offer prefill comes from query params on the service page when a
+// customer clicks "Book Appointment" on a published offer card.
+function offerFromSearchParams(params: {
+  get: (key: string) => string | null
+}): AppointmentFormProps["offer"] {
+  const offerId = params.get("offerId")
+  const offerTitle = params.get("offerTitle")
+  const discountType = params.get("discountType")
+  const discountValue = Number(params.get("discountValue"))
+  if (!offerId || !offerTitle) return null
+  return {
+    id: offerId,
+    title: offerTitle,
+    discountType: discountType === "fixed" ? "fixed" : "percentage",
+    discountValue: Number.isFinite(discountValue) ? discountValue : 0,
+    promoCode: params.get("promoCode") ?? "",
+  }
+}
+
+export default function AppointmentForm({ service, offer }: AppointmentFormProps) {
 const [selectedDate, setSelectedDate] = useState<Date>()
 const [selectedTime, setSelectedTime] = useState("")
 const [phone, setPhone] = useState("")
 const [loading, setLoading] = useState(false)
+
+// Applied discount when the form was opened from an offer card.
+const searchParams = useSearchParams()
+const appliedOffer = useMemo(() => {
+  const offerFromUrl = offerFromSearchParams(searchParams)
+  const activeOffer = offerFromUrl ?? offer ?? null
+  if (!activeOffer || !service) return null
+  const basePrice = Number(service.price) || 0
+  const finalPrice =
+    activeOffer.discountType === "percentage"
+      ? basePrice - (basePrice * Number(activeOffer.discountValue || 0)) / 100
+      : basePrice - Number(activeOffer.discountValue || 0)
+  return {
+    ...activeOffer,
+    originalPrice: basePrice,
+    finalPrice: Math.max(0, Math.round(finalPrice * 100) / 100),
+  }
+}, [offer, service, searchParams])
   // Attach the signed-in customer so booking history can be shown
   // per customer. Visitors are asked to sign in when they book.
   const { data: session } = authClient.useSession()
@@ -126,8 +172,19 @@ const handleBooking = async () => {
         serviceId: service.id,
         serviceName: service.name,
         serviceImage: service.image,
-        price: service.price,
+        price: appliedOffer ? appliedOffer.finalPrice : service.price,
         duration: service.duration,
+        // Offer metadata (kept optional — normal bookings omit these)
+        ...(appliedOffer
+          ? {
+              offerId: appliedOffer.id,
+              offerTitle: appliedOffer.title,
+              offerDiscountType: appliedOffer.discountType,
+              offerDiscountValue: appliedOffer.discountValue,
+              offerPromoCode: appliedOffer.promoCode,
+              originalPrice: appliedOffer.originalPrice,
+            }
+          : {}),
         date: selectedDate.toISOString().split("T")[0],
         time: selectedTime,
         userId: currentUser.user.id ?? "",
@@ -181,7 +238,22 @@ const handleBooking = async () => {
       <CardContent className="space-y-6">
         <div>
           <h3 className="mb-2 font-semibold">{service.name}</h3>
-          <p>Price: ${service.price}</p>
+          {appliedOffer ? (
+            <>
+              <p className="text-sm text-muted-foreground">
+                Offer: <span className="font-semibold text-rose-600">{appliedOffer.title}</span>
+                {appliedOffer.promoCode ? ` (${appliedOffer.promoCode})` : ""}
+              </p>
+              <p>
+                Original price: <span className="line-through">${appliedOffer.originalPrice}</span>
+              </p>
+              <p>
+                Discounted price: <span className="font-semibold text-rose-600">${appliedOffer.finalPrice}</span>
+              </p>
+            </>
+          ) : (
+            <p>Price: ${service.price}</p>
+          )}
           <p>Duration: {service.duration}</p>
         </div>
 

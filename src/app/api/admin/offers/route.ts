@@ -20,7 +20,9 @@ export async function GET() {
     return Response.json({ message: guard.message }, { status: guard.status })
   }
 
-  const result = await callOffersApi("/offers/all", { method: "GET" })
+  // Express has no /offers/all — GET /offers already returns every offer
+  // (active and inactive alike), so ask for that instead of a 404.
+  const result = await callOffersApi("/offers", { method: "GET" })
   if (!result.ok) {
     return Response.json(result.data, { status: result.status })
   }

@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
+import Link from "next/link"
 
 import {
   AlertCircle,
@@ -289,6 +290,26 @@ const MyOffersPage = () => {
                   ) : null}
                 </div>
               </CardContent>
+
+              {/* Book Appointment button */}
+              <div className="px-6 pb-4">
+                <Button
+                  type="button"
+                  render={
+                    <Link
+                      href={
+                        offer.applicableService &&
+                        offer.applicableService !== "All services"
+                          ? `/services/${encodeURIComponent(offer.applicableService)}?offerId=${encodeURIComponent(offer._id)}&offerTitle=${encodeURIComponent(offer.title)}&discountType=${offer.discountType}&discountValue=${offer.discountValue}&promoCode=${encodeURIComponent(offer.promoCode || offer.couponCode || "")}`
+                          : "/services"
+                      }
+                    />
+                  }
+                  className="w-full rounded-full bg-rose-600 text-white shadow-lg shadow-rose-500/25 hover:bg-rose-700"
+                >
+                  Book Appointment
+                </Button>
+              </div>
 
               {offer.terms ? (
                 <CardFooter className="mt-auto flex-col items-start gap-1 border-t border-black/[.06] pt-3 dark:border-white/[.08]">

@@ -1,7 +1,5 @@
+"use client";
 
-import { auth } from "@/app/lib/auth";
-import { headers } from "next/headers";
-import { redirect } from "next/navigation";
 import {
   SidebarInset,
   SidebarProvider,
@@ -15,44 +13,37 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
 import { AdminSidebar } from "@/components/ui/admin-sidebar";
+import SessionGate from "@/app/components/session-gate";
 
-export default async function DashboardLayout({
+export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session?.user) {
-    redirect("/signin?callbackURL=/admin-dashboard");
-  }
   return (
-    <SidebarProvider
-      style={
-        {
-          "--sidebar-width": "13rem",
-        } as React.CSSProperties
-      }
-   >
-     <AdminSidebar/>
+    <SessionGate>
+      <SidebarProvider>
+        <AdminSidebar />
 
-      <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="-ml-1" />
-          <Separator orientation="vertical" className="mr-2 h-4" />
+        <SidebarInset>
+          <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+            <SidebarTrigger className="-ml-1" />
+            <Separator orientation="vertical" className="mr-2 h-4" />
 
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbPage>Dashboard</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-        </header>
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem>
+                  <BreadcrumbPage>Dashboard</BreadcrumbPage>
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
+          </header>
 
-        <main className="flex flex-1 flex-col gap-4 p-4">
-          {children}
-        </main>
-      </SidebarInset>
-    </SidebarProvider>
+          <main className="flex flex-1 flex-col gap-4 p-4">
+            {children}
+          </main>
+        </SidebarInset>
+      </SidebarProvider>
+    </SessionGate>
   );
 }

@@ -312,6 +312,25 @@ export default function OffersBrowser() {
                   ) : null}
                 </div>
 
+                {/* Book Appointment — routes to the existing service booking
+                    flow, pre-filling the offer when one service applies. */}
+                <Button
+                  type="button"
+                  render={
+                    <Link
+                      href={
+                        offer.applicableService &&
+                        offer.applicableService !== "All services"
+                          ? `/services/${encodeURIComponent(offer.applicableService)}?offerId=${encodeURIComponent(offer._id)}&offerTitle=${encodeURIComponent(offer.title)}&discountType=${offer.discountType}&discountValue=${offer.discountValue}&promoCode=${encodeURIComponent(offer.promoCode || offer.couponCode || "")}`
+                          : "/services"
+                      }
+                    />
+                  }
+                  className="rounded-full bg-rose-600 text-white shadow-lg shadow-rose-500/25 hover:bg-rose-700"
+                >
+                  Book Appointment
+                </Button>
+
                 {/* Expiry + minimum booking */}
                 <div className="flex flex-col gap-1.5 text-xs text-zinc-500 dark:text-zinc-400">
                   <span className="inline-flex items-center gap-1.5">

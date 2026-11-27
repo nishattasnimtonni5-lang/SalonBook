@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
-import { headers } from "next/headers";
-import { auth } from "@/app/lib/auth";
+import { notFound } from "next/navigation";
 import { API_BASE_URL } from "@/app/lib/api/config";
 import { ArrowLeft, CalendarCheck, Clock, Tag } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { services, type Service } from "@/app/data/services";
+import SessionGate from "@/app/components/session-gate";
 import AppointmentForm from "./appointmentForm";
 
 type ApiService = {
@@ -138,17 +137,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 const ServiceDetailsPage = async ({ params }: PageProps) => {
   const { id } = await params;
 
-  // Protect details page: redirect visitors to sign in if not authenticated
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session?.user) {
-    redirect(`/signin?callbackURL=/services/${encodeURIComponent(id)}`);
-  }
-
   const service = await getService(decodeURIComponent(id));
 
   if (!service) notFound();
 
+  // Session check happens in the client-side <SessionGate> — the session
+  // cookie lives on the backend domain, so a server-side getSession() here
+  // could never see it and bounced every visitor back to /signin.
   return (
+    <SessionGate>
     <div className="flex flex-1 flex-col">
       {/* Page header */}
       <section className="relative overflow-hidden border-b border-black/[.06] bg-gradient-to-br from-rose-50 via-white to-purple-50 dark:border-white/[.08] dark:from-rose-950/30 dark:via-zinc-950 dark:to-purple-950/30">
@@ -226,6 +223,7 @@ const ServiceDetailsPage = async ({ params }: PageProps) => {
         </div>
       </section>
     </div>
+    </SessionGate>
   );
 };
 

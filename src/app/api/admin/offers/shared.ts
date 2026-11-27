@@ -1,5 +1,4 @@
-import { headers } from "next/headers"
-import { auth } from "@/app/lib/auth"
+import { getRequestSession } from "@/app/lib/server-session"
 import { SERVER_API_BASE_URL } from "@/app/lib/api/server-config"
 
 
@@ -10,7 +9,7 @@ type AdminGuard =
   | { ok: false; status: 401 | 403; message: string }
 
 export async function requireAdmin(): Promise<AdminGuard> {
-  const session = await auth.api.getSession({ headers: await headers() })
+  const session = await getRequestSession()
 
   if (!session?.user) {
     return {

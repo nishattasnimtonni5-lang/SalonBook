@@ -1,5 +1,5 @@
 import { headers } from "next/headers"
-import { auth } from "@/app/lib/auth"
+import { getRequestSession, getRequestSessionToken, buildSessionCookieHeader } from "@/app/lib/server-session"
 import { SERVER_API_BASE_URL } from "@/app/lib/api/server-config"
 
 const EXPRESS_BASE = SERVER_API_BASE_URL
@@ -9,7 +9,7 @@ type AdminGuard =
   | { ok: false; status: 401 | 403; message: string }
 
 export async function requireAdmin(): Promise<AdminGuard> {
-  const session = await auth.api.getSession({ headers: await headers() })
+  const session = await getRequestSession()
 
   if (!session?.user) {
     return {
@@ -50,10 +50,17 @@ export async function callAppointmentsApi(
   }
 
   // Express guards PATCH /appointments/:id with `requireAdmin`, which resolves
-  // the better-auth session from the incoming cookie. The internal secret alone
-  // only unlocks GET /appointments, so the caller's session cookie has to be
-  // forwarded or every status update is rejected with 401.
-  const cookie = (await headers()).get("cookie")
+  // the better-auth session from the incoming cookie. The browser only holds
+  // that cookie on the backend origin, so this Next request arrives with the
+  // mirrored session token instead (see `@/app/lib/server-session`): sign it
+  // exactly the way better-call's setSignedCookie does — both apps share
+  // BETTER_AUTH_SECRET — so Express can verify it. Without this, every
+  // status update is rejected with 401.
+  const requestHeaders = await headers()
+  const token = await getRequestSessionToken()
+  const cookie = token
+    ? await buildSessionCookieHeader(token)
+    : requestHeaders.get("cookie")
 
   let response: Response
   try {
