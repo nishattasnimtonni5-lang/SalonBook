@@ -1,7 +1,6 @@
-
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { OFFERS_API_URL } from "@/app/lib/api/config";
@@ -25,6 +24,29 @@ import {
 import { Field, FieldLabel } from "@/components/ui/field";
 import { toast } from "@/components/ui/toast";
 
+type Service = {
+  _id: string;
+  name: string;
+  category: string;
+  price: number;
+  status: string;
+};
+
+type Offer = {
+  _id: string;
+  title: string;
+  image?: string;
+  description: string;
+  discountType: string;
+  discountValue: number;
+  category?: string;
+  applicableService?: string;
+  applicableServiceId?: string;
+  expiryDate: string;
+  promoCode?: string;
+  status: string;
+};
+
 export default function ManageOffersPage() {
   const [imageUrl, setImageUrl] = useState("");
   const [uploading, setUploading] = useState(false);
@@ -32,8 +54,59 @@ export default function ManageOffersPage() {
   const [status, setStatus] = useState("active");
   const [category, setCategory] = useState("");
   const [submitting, setSubmitting] = useState(false);
-
+  const [services, setServices] = useState<Service[]>([]);
+  const [selectedServiceId, setSelectedServiceId] = useState("");
+  const [offers, setOffers] = useState<Offer[]>([]);
+  const [loadingOffers, setLoadingOffers] = useState(true);
+  const [deletingId, setDeletingId] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const fetchServices = async () => {
+    try {
+      const res = await fetch(
+        OFFERS_API_URL.replace(/\/offers\/?$/, "/services")
+      );
+
+      if (!res.ok) throw new Error("Failed to fetch services");
+
+      const data = await res.json();
+      setServices(data);
+    } catch (error) {
+      console.log(error);
+      toast.add({
+        type: "error",
+        title: "Services not loaded",
+        description: "Could not load available services.",
+      });
+    }
+  };
+
+  const fetchOffers = async () => {
+    setLoadingOffers(true);
+
+    try {
+      const res = await fetch(OFFERS_API_URL);
+
+      if (!res.ok) throw new Error("Failed to fetch offers");
+
+      const data = await res.json();
+      setOffers(data);
+    } catch (error) {
+      console.log(error);
+      toast.add({
+        type: "error",
+        title: "Offers not loaded",
+        description: "Could not load existing offers.",
+      });
+    } finally {
+      setLoadingOffers(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchServices();
+    fetchOffers();
+  }, []);
 
   const handleImageUpload = async (
     e: React.ChangeEvent<HTMLInputElement>
@@ -68,12 +141,14 @@ export default function ManageOffersPage() {
           type: "error",
           title: "Image upload failed",
           description:
-            data.error || "We could not upload that image. Please try another one.",
+            data.error ||
+            "We could not upload that image. Please try another one.",
         });
         return;
       }
 
       setImageUrl(data.url);
+
       toast.add({
         id: "offer-image",
         type: "success",
@@ -100,7 +175,6 @@ export default function ManageOffersPage() {
     e.preventDefault();
 
     const form = e.currentTarget;
-
     const submitToastId = "add-offer";
 
     if (!imageUrl) {
@@ -108,17 +182,22 @@ export default function ManageOffersPage() {
         id: submitToastId,
         type: "error",
         title: "Offer image required",
-        description: "Please upload an offer image before publishing this offer.",
+        description:
+          "Please upload an offer image before publishing this offer.",
       });
       return;
     }
 
-    if (!category) {
+    const selectedService = services.find(
+      (service) => service._id === selectedServiceId
+    );
+
+    if (!selectedService) {
       toast.add({
         id: submitToastId,
         type: "error",
-        title: "Category required",
-        description: "Please select a category for this offer.",
+        title: "Service required",
+        description: "Please select a service for this offer.",
       });
       return;
     }
@@ -131,7 +210,9 @@ export default function ManageOffersPage() {
       description: formData.get("description"),
       discountType,
       discountValue: Number(formData.get("discountValue")),
-      category,
+      category: selectedService.category || category,
+      applicableService: selectedService.name,
+      applicableServiceId: selectedService._id,
       startDate: formData.get("startDate"),
       expiryDate: formData.get("expiryDate"),
       promoCode: formData.get("promoCode"),
@@ -159,12 +240,11 @@ export default function ManageOffersPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        const message = data.message || "Failed to publish offer."
         toast.add({
           id: submitToastId,
           type: "error",
           title: "Offer not published",
-          description: message,
+          description: data.message || "Failed to publish offer.",
         });
         return;
       }
@@ -179,12 +259,15 @@ export default function ManageOffersPage() {
       form.reset();
       setImageUrl("");
       setCategory("");
+      setSelectedServiceId("");
       setDiscountType("percentage");
       setStatus("active");
 
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
+
+      await fetchOffers();
     } catch (error) {
       console.log(error);
       toast.add({
@@ -196,6 +279,53 @@ export default function ManageOffersPage() {
       });
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this offer?"
+    );
+
+    if (!confirmed) return;
+
+    setDeletingId(id);
+
+    try {
+      const res = await fetch(`${OFFERS_API_URL}/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.add({
+          type: "error",
+          title: "Delete failed",
+          description: data.message || "Could not delete this offer.",
+        });
+        return;
+      }
+
+      toast.add({
+        type: "success",
+        title: "Offer deleted",
+        description: "The offer has been deleted successfully.",
+      });
+
+      setOffers((previous) =>
+        previous.filter((offer) => offer._id !== id)
+      );
+    } catch (error) {
+      console.log(error);
+      toast.add({
+        type: "error",
+        title: "Delete failed",
+        description: "Could not reach the server.",
+      });
+    } finally {
+      setDeletingId("");
     }
   };
 
@@ -281,7 +411,7 @@ export default function ManageOffersPage() {
                 <Select
                   value={discountType}
                   onValueChange={(value) => {
-                    if (value) setDiscountType(value)
+                    if (value) setDiscountType(value);
                   }}
                 >
                   <SelectTrigger>
@@ -300,9 +430,7 @@ export default function ManageOffersPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="discountValue">
-                  Discount Value
-                </Label>
+                <Label htmlFor="discountValue">Discount Value</Label>
 
                 <Input
                   id="discountValue"
@@ -319,28 +447,40 @@ export default function ManageOffersPage() {
             </div>
 
             <div className="space-y-2">
-              <Label>Applicable Category</Label>
+              <Label>Applicable Service</Label>
 
               <Select
-                value={category}
+                value={selectedServiceId}
                 onValueChange={(value) => {
-                  if (value) setCategory(value)
+                  if (value) {
+                    setSelectedServiceId(value);
+
+                    const service = services.find(
+                      (item) => item._id === value
+                    );
+
+                    if (service) setCategory(service.category);
+                  }
                 }}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select category" />
+                  <SelectValue placeholder="Select a service" />
                 </SelectTrigger>
 
                 <SelectContent>
-                  <SelectItem value="all">All Services</SelectItem>
-                  <SelectItem value="hair">Hair</SelectItem>
-                  <SelectItem value="facial">Facial & Skin Care</SelectItem>
-                  <SelectItem value="makeup">Makeup</SelectItem>
-                  <SelectItem value="nail">Nail Care</SelectItem>
-                  <SelectItem value="spa">Spa & Massage</SelectItem>
-                  <SelectItem value="waxing">Waxing & Threading</SelectItem>
+                  {services.map((service) => (
+                    <SelectItem key={service._id} value={service._id}>
+                      {service.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
+
+              {services.length === 0 && (
+                <p className="text-sm text-muted-foreground">
+                  No active services available.
+                </p>
+              )}
             </div>
 
             <div className="grid gap-5 sm:grid-cols-2">
@@ -383,7 +523,7 @@ export default function ManageOffersPage() {
               <Select
                 value={status}
                 onValueChange={(value) => {
-                  if (value) setStatus(value)
+                  if (value) setStatus(value);
                 }}
               >
                 <SelectTrigger>
@@ -399,12 +539,95 @@ export default function ManageOffersPage() {
 
             <Button
               type="submit"
-              disabled={submitting || uploading}
+              disabled={
+                submitting ||
+                uploading ||
+                services.length === 0 ||
+                !selectedServiceId
+              }
               className="w-full bg-rose-600 hover:bg-rose-700"
             >
               {submitting ? "Publishing..." : "Publish Offer"}
             </Button>
           </form>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Existing Offers</CardTitle>
+          <CardDescription>
+            View and manage all your salon offers.
+          </CardDescription>
+        </CardHeader>
+
+        <CardContent>
+          {loadingOffers ? (
+            <p className="text-muted-foreground">Loading offers...</p>
+          ) : offers.length === 0 ? (
+            <p className="text-muted-foreground">
+              No offers available yet.
+            </p>
+          ) : (
+            <div className="space-y-4">
+              {offers.map((offer) => (
+                <div
+                  key={offer._id}
+                  className="flex flex-col gap-4 rounded-lg border p-4 sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <div className="flex items-center gap-4">
+                    {offer.image && (
+                      <Image
+                        src={offer.image}
+                        alt={offer.title}
+                        width={100}
+                        height={80}
+                        unoptimized
+                        className="h-20 w-24 rounded-md object-cover"
+                      />
+                    )}
+
+                    <div>
+                      <h3 className="font-semibold">{offer.title}</h3>
+
+                      <p className="text-sm text-muted-foreground">
+                        {offer.applicableService || offer.category || "All services"}
+                      </p>
+
+                      <p className="text-sm">
+                        {offer.discountType === "percentage"
+                          ? `${offer.discountValue}% off`
+                          : `৳${offer.discountValue} off`}
+                      </p>
+
+                      <p className="text-xs text-muted-foreground">
+                        Expires: {offer.expiryDate}
+                      </p>
+
+                      <span
+                        className={`mt-1 inline-block rounded-full px-2 py-1 text-xs ${
+                          offer.status === "active"
+                            ? "bg-green-100 text-green-700"
+                            : "bg-gray-100 text-gray-700"
+                        }`}
+                      >
+                        {offer.status}
+                      </span>
+                    </div>
+                  </div>
+
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    disabled={deletingId === offer._id}
+                    onClick={() => handleDelete(offer._id)}
+                  >
+                    {deletingId === offer._id ? "Deleting..." : "Delete"}
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

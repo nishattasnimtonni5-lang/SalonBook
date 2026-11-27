@@ -39,6 +39,7 @@ export type Offer = {
   createdAt: string
   status?: "active" | "inactive" | string
   promoCode?: string
+  applicableServiceId?: string
   image?: string
   category?: string
 }
@@ -250,6 +251,10 @@ export function filterValidOffers(data: unknown): Offer[] {
           : typeof record.category === "string"
             ? record.category
             : "All services",
+     applicableServiceId:
+  typeof record.applicableServiceId === "string"
+    ? record.applicableServiceId
+    : "",
       couponCode:
         typeof record.couponCode === "string"
           ? record.couponCode

@@ -310,19 +310,29 @@ const MyOffersPage = () => {
                 </div>
               </CardContent>
 
-              <div className="px-6 pb-4">
-                <Button
-  type="button"
-  render={
-    <Link
-      href={`/services/${encodeURIComponent(offer.applicableService)}?offerId=${offer._id}&offerTitle=${encodeURIComponent(offer.title)}&discountType=${offer.discountType}&discountValue=${offer.discountValue}&promoCode=${encodeURIComponent(offer.promoCode || offer.couponCode || "")}`}
-    />
-  }
-  className="w-full rounded-full bg-rose-600 text-white shadow-lg shadow-rose-500/25 hover:bg-rose-700"
->
-  Book Appointment
-</Button>
-              </div>
+             <div className="px-6 pb-4">
+  {offer.applicableServiceId ? (
+    <Button
+      type="button"
+      render={
+        <Link
+          href={`/services/${offer.applicableServiceId}?offerId=${offer._id}&offerTitle=${encodeURIComponent(offer.title)}&discountType=${offer.discountType}&discountValue=${offer.discountValue}&promoCode=${encodeURIComponent(offer.promoCode || offer.couponCode || "")}`}
+        />
+      }
+      className="w-full rounded-full bg-rose-600 text-white shadow-lg shadow-rose-500/25 hover:bg-rose-700"
+    >
+      Book Appointment
+    </Button>
+  ) : (
+    <Button
+      type="button"
+      disabled
+      className="w-full rounded-full"
+    >
+      Service unavailable
+    </Button>
+  )}
+</div>
 
               {offer.terms ? (
                 <CardFooter className="mt-auto flex-col items-start gap-1 border-t border-black/[.06] pt-3 dark:border-white/[.08]">
