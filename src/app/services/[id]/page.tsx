@@ -31,8 +31,7 @@ type ServiceDetail = {
   status?: string;
 };
 
-// The API doesn't return duration/description yet — reuse the same fallback
-// copy as the featured services section so the page never renders empty.
+
 const serviceExtras: Record<string, { duration: string; description: string }> = {
   "Hair Styling": {
     duration: "45 min",
@@ -146,6 +145,7 @@ const ServiceDetailsPage = async ({ params }: PageProps) => {
   // could never see it and bounced every visitor back to /signin.
   return (
     <SessionGate>
+    
     <div className="flex flex-1 flex-col">
       {/* Page header */}
       <section className="relative overflow-hidden border-b border-black/[.06] bg-gradient-to-br from-rose-50 via-white to-purple-50 dark:border-white/[.08] dark:from-rose-950/30 dark:via-zinc-950 dark:to-purple-950/30">

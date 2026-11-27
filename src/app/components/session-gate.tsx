@@ -6,19 +6,7 @@ import { Loader2 } from "lucide-react";
 import { authClient } from "@/app/lib/auth-client";
 import { SESSION_COOKIE_NAME } from "@/lib/session-cookie";
 
-/**
- * Client-side session guard.
- *
- * The BetterAuth session cookie lives on the backend domain, so Next's
- * server-side `auth.api.getSession()` (reading this request's cookies) can
- * never see it. The same `useSession()` the navbar uses is the source of
- * truth: while the session check is pending — or once it comes back empty —
- * render a spinner and send signed-out visitors to /signin with a callback.
- *
- * Once the session resolves, the token is mirrored into a same-origin
- * cookie BEFORE children render, so the dashboard's /api calls (reports,
- * appointments, offers…) can authenticate their requests.
- */
+
 export default function SessionGate({
   children,
 }: {

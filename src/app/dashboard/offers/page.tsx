@@ -31,6 +31,7 @@ import {
   type Offer,
 } from "@/lib/offers"
 import { OFFERS_API_URL } from "@/app/lib/api/config"
+import BlockedUserGuard from './../../components/BlockedUserGuard';
 
 const MyOffersPage = () => {
   const [offers, setOffers] = useState<Offer[]>([])
@@ -139,6 +140,7 @@ const MyOffersPage = () => {
   )
 
   return (
+     <BlockedUserGuard>
     <div className="flex flex-col gap-4">
       <div>
         <h1 className="font-heading text-2xl font-semibold tracking-tight">
@@ -337,7 +339,9 @@ const MyOffersPage = () => {
           ))}
         </div>
       )}
-    </div>
+     
+    </div> 
+    </BlockedUserGuard>
   )
 }
 
