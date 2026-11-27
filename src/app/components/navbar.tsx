@@ -8,15 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { authClient } from "../lib/auth-client";
 import { API_BASE_URL } from "@/app/lib/api/config";
 
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownGroup,
-  DropdownItem,
-  DropdownLabel,
-  DropdownSeparator,
-  DropdownTrigger,
-} from "@/components/ui/dropdown-menu";
+
 
 import {
   Sheet,
@@ -25,6 +17,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 const navLinks = [
   { href: "/", label: "Home" },

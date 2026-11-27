@@ -35,7 +35,26 @@ import {
   isOfferVisible,
   type Offer,
 } from "@/lib/offers";
+function getOfferBookingHref(offer: Offer) {
+  const serviceId =
+    offer.applicableService?.toLowerCase() === "hair"
+      ? "6b0934162c45ba68cf9f26f2"
+      : null;
 
+  if (!serviceId) {
+    return "/services";
+  }
+
+  const params = new URLSearchParams({
+    offerId: offer._id,
+    offerTitle: offer.title,
+    discountType: offer.discountType,
+    discountValue: String(offer.discountValue),
+    promoCode: offer.promoCode || offer.couponCode || "",
+  });
+
+  return `/services/${serviceId}?${params.toString()}`;
+}
 export default function OffersBrowser() {
   const [offers, setOffers] = useState<Offer[]>([]);
   const [loading, setLoading] = useState(true);
@@ -318,12 +337,7 @@ export default function OffersBrowser() {
                   type="button"
                   render={
                     <Link
-                      href={
-                        offer.applicableService &&
-                        offer.applicableService !== "All services"
-                          ? `/services/${encodeURIComponent(offer.applicableService)}?offerId=${encodeURIComponent(offer._id)}&offerTitle=${encodeURIComponent(offer.title)}&discountType=${offer.discountType}&discountValue=${offer.discountValue}&promoCode=${encodeURIComponent(offer.promoCode || offer.couponCode || "")}`
-                          : "/services"
-                      }
+                      href={getOfferBookingHref(offer)}
                     />
                   }
                   className="rounded-full bg-rose-600 text-white shadow-lg shadow-rose-500/25 hover:bg-rose-700"
