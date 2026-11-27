@@ -233,10 +233,14 @@ export default function ManageUsersPage() {
                         {user.isBlocked ? "Blocked" : "Active"}
                       </span>
                     </td>
-
+  
                     <td className="p-3">
                       <div className="flex items-center gap-2">
-                        <Button variant="outline" size="sm" asChild>
+                       <Button
+  variant="outline"
+  size="sm"
+  render={<Link href={`/admin/users/${user.id}/transactions`} />}
+>
                           <Link href={`/admin/users/${user.id}/transactions`}>
                             <Eye className="size-4" />
                             View

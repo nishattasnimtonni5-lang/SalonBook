@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Menu, Scissors } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { authClient } from "../lib/auth-client";
@@ -17,13 +17,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
+
+
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -31,12 +26,17 @@ const navLinks = [
   { href: "/offers", label: "Offers" },
   { href: "/about", label: "About Us" },
 ];
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+
 
 export default function Navbar() {
   const { data: session, isPending } = authClient.useSession();
+ console.log("Session role:", (session?.user as { role?: string } | undefined)?.role);
+console.log("Session isBlocked:", (session?.user as { isBlocked?: boolean } | undefined)?.isBlocked);
   const [menuOpen, setMenuOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
 
   const authenticated =
     !isPending && !signingOut && !!session?.user;
@@ -47,6 +47,14 @@ export default function Navbar() {
 
   const dashboardLink =
     userRole === "admin" ? "/admin-dashboard" : "/dashboard";
+
+  const currentPage = pathname || "/";
+  const signInHref = `/signin?callbackURL=${encodeURIComponent(currentPage)}`;
+  const signUpHref = `/signup?callbackURL=${encodeURIComponent(currentPage)}`;
+
+  const dashboardHref = authenticated
+    ? dashboardLink
+    : "/signin?callbackURL=%2F";
 
   const handleSignout = async () => {
     setSigningOut(true);
@@ -68,12 +76,9 @@ export default function Navbar() {
     }
   };
 
-  const dashboardHref = authenticated
-    ? dashboardLink
-    : "/signin?callbackURL=/";
-
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-black/[.08] bg-white/80 backdrop-blur dark:border-white/[.145] dark:bg-black/80">
+    
+    <div className="sticky top-0 z-50 w-full border-b border-black/[.08] bg-white/80 backdrop-blur dark:border-white/[.145] dark:bg-black/80">
       <nav className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-4 px-6">
         <Link
           href="/"
@@ -128,9 +133,9 @@ export default function Navbar() {
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>Profile</DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href={dashboardLink}>Dashboard</Link>
-                </DropdownMenuItem>
+               <DropdownMenuItem render={<Link href={dashboardLink} />}>
+  Dashboard
+</DropdownMenuItem>
                 <DropdownMenuItem>Settings</DropdownMenuItem>
               </DropdownMenuGroup>
 
@@ -144,13 +149,13 @@ export default function Navbar() {
         ) : !isPending && !signingOut ? (
           <div className="flex items-center gap-2 sm:gap-3">
             <Link
-              href="/signin"
+              href={signInHref}
               className="hidden h-9 items-center justify-center px-4 text-sm font-medium text-zinc-600 transition-colors hover:text-black dark:text-zinc-400 dark:hover:text-zinc-50 sm:flex"
             >
               Sign In
             </Link>
             <Link
-              href="/signup"
+              href={signUpHref}
               className="flex h-9 items-center justify-center rounded-full bg-rose-600 px-5 text-sm font-medium text-white transition-colors hover:bg-rose-700"
             >
               Sign Up
@@ -212,14 +217,14 @@ export default function Navbar() {
             ) : !isPending && !signingOut ? (
               <div className="mt-auto flex flex-col gap-2 px-4 pb-4">
                 <Link
-                  href="/signin"
+                  href={signInHref}
                   onClick={() => setMenuOpen(false)}
                   className="flex h-9 items-center justify-center rounded-full border border-black/[.08] px-5 text-sm font-medium text-zinc-700 transition-colors hover:bg-black/[.04] dark:border-white/[.145] dark:text-zinc-300"
                 >
                   Sign In
                 </Link>
                 <Link
-                  href="/signup"
+                  href={signUpHref}
                   onClick={() => setMenuOpen(false)}
                   className="flex h-9 items-center justify-center rounded-full bg-rose-600 px-5 text-sm font-medium text-white transition-colors hover:bg-rose-700"
                 >
@@ -230,6 +235,7 @@ export default function Navbar() {
           </SheetContent>
         </Sheet>
       </nav>
-    </header>
+    </div>
+    
   );
 }
