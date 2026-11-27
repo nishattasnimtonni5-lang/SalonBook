@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import ServiceCard from "./service-card";
 import { API_BASE_URL } from "@/app/lib/api/config";
+import FavoriteButton from "./FavoriteButton";
 
 type ApiService = {
   _id: string;
@@ -234,20 +235,29 @@ const [sortBy, setSortBy] = useState<"default" | "price-asc" | "price-desc">(
 
       {!loading && !error && visibleServices.length > 0 && (
         <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {visibleServices.map((service) => (
-            <ServiceCard
-              key={service._id}
-              service={{
-                id: service._id,
-                name: service.name,
-                category: service.category ?? "Salon",
-                price: service.price ?? 0,
-                image: service.image ?? "/services/haircut.svg",
-                description: service.description,
-                duration: service.duration,
-              }}
-            />
-          ))}
+         {visibleServices.map((service) => {
+  const favoriteService = {
+    id: service._id,
+    name: service.name,
+    image: service.image ?? "/services/haircut.svg",
+    price: service.price ?? 0,
+    category: service.category ?? "Salon",
+    duration: service.duration ?? "45 min",
+  };
+
+  return (
+    <div key={service._id} className="relative">
+      <ServiceCard
+        service={{
+          ...favoriteService,
+          description: service.description,
+        }}
+      />
+
+      <FavoriteButton service={favoriteService} />
+    </div>
+  );
+})}
         </div>
       )}
     </section>
