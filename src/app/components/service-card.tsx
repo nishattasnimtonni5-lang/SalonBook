@@ -8,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import BlockedUserGuard from "./BlockedUserGuard";
 
 export type ServiceCardData = {
   id: string;
@@ -62,6 +63,7 @@ export default function ServiceCard({ service }: { service: ServiceCardData }) {
   const description = service.description ?? fallback.description;
 
   return (
+    <BlockedUserGuard>
     <Card className="group h-full pt-0 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-rose-500/10">
       {/* Service image with category overlay */}
       <div className="relative overflow-hidden">
@@ -116,5 +118,6 @@ export default function ServiceCard({ service }: { service: ServiceCardData }) {
         </Button>
       </CardFooter>
     </Card>
+    </BlockedUserGuard>
   );
 }
