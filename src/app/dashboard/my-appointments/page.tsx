@@ -60,6 +60,7 @@ type Appointment = {
   serviceId: string
   serviceName: string
   serviceImage: string
+  offerImage?: string
   price: number
   duration?: string
   date: string
@@ -463,15 +464,15 @@ export default function MyAppointmentsPage() {
                   <TableRow key={appointment._id}>
                     <TableCell>
                       <div className="relative size-10 overflow-hidden rounded-lg bg-muted">
-                        {appointment.serviceImage ? (
-                          <Image
-                            src={appointment.serviceImage}
-                            alt={appointment.serviceName}
-                            fill
-                            sizes="40px"
-                            className="object-cover"
-                          />
-                        ) : null}
+                       {appointment.offerImage || appointment.serviceImage ? (
+  <Image
+    src={appointment.offerImage || appointment.serviceImage}
+    alt={appointment.serviceName}
+    fill
+    sizes="40px"
+    className="object-cover"
+  />
+) : null}
                       </div>
                     </TableCell>
                     <TableCell className="font-medium">
@@ -550,15 +551,15 @@ export default function MyAppointmentsPage() {
 
               <div className="flex items-start gap-4">
                 <div className="relative size-20 shrink-0 overflow-hidden rounded-lg bg-muted">
-                  {details.serviceImage ? (
-                    <Image
-                      src={details.serviceImage}
-                      alt={details.serviceName}
-                      fill
-                      sizes="80px"
-                      className="object-cover"
-                    />
-                  ) : null}
+                  {details.offerImage || details.serviceImage ? (
+  <Image
+    src={details.offerImage || details.serviceImage}
+    alt={details.serviceName}
+    fill
+    sizes="80px"
+    className="object-cover"
+  />
+) : null}
                 </div>
                 <dl className="grid flex-1 grid-cols-1 gap-x-4 gap-y-2 text-sm sm:grid-cols-2">
                   <div className="flex justify-between gap-2 sm:block">

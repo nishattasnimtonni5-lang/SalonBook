@@ -136,8 +136,8 @@ const MyOffersPage = () => {
   }
 
   const visibleOffers = offers.filter(
-    (offer) => !isOfferExpired(offer.expiryDate)
-  )
+  (offer) => offer.active && !isOfferExpired(offer.expiryDate)
+)
 
   return (
      <BlockedUserGuard>
@@ -316,7 +316,7 @@ const MyOffersPage = () => {
       type="button"
       render={
         <Link
-          href={`/services/${offer.applicableServiceId}?offerId=${offer._id}&offerTitle=${encodeURIComponent(offer.title)}&discountType=${offer.discountType}&discountValue=${offer.discountValue}&promoCode=${encodeURIComponent(offer.promoCode || offer.couponCode || "")}`}
+          href={`/services/${offer.applicableServiceId}?offerId=${offer._id}&offerTitle=${encodeURIComponent(offer.title)}&discountType=${offer.discountType}&discountValue=${offer.discountValue}&promoCode=${encodeURIComponent(offer.promoCode || offer.couponCode || "")}&offerImage=${encodeURIComponent(offer.image || "")}`}
         />
       }
       className="w-full rounded-full bg-rose-600 text-white shadow-lg shadow-rose-500/25 hover:bg-rose-700"

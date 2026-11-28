@@ -229,13 +229,13 @@ export function filterValidOffers(data: unknown): Offer[] {
     }
 
     const status =
-      typeof record.status === "string"
-        ? record.status
-        : typeof record.active === "boolean"
-          ? record.active
-            ? "active"
-            : "inactive"
-          : "inactive"
+  typeof record.active === "boolean"
+    ? record.active
+      ? "active"
+      : "inactive"
+    : typeof record.status === "string"
+      ? record.status.trim().toLowerCase()
+      : "inactive"
 
     return [{
       _id: record._id,

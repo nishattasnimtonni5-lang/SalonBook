@@ -43,6 +43,7 @@ type Appointment = {
   _id: string
   serviceId: string
   serviceName: string
+  offerImage?: string
   serviceImage: string
   price: number
   duration?: string
@@ -497,21 +498,21 @@ export default function BookingHistoryPage() {
                   key={appointment._id}
                   className="group flex flex-col overflow-hidden rounded-xl bg-card ring-1 ring-foreground/10 transition-shadow hover:shadow-md"
                 >
-                  <div className="relative aspect-[16/10] overflow-hidden bg-muted">
-                    {appointment.serviceImage ? (
-                      <Image
-                        src={appointment.serviceImage}
-                        alt={appointment.serviceName}
-                        fill
-                        sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
-                        className="object-cover transition-transform duration-300 group-hover:scale-105"
-                      />
-                    ) : (
-                      <span className="flex size-full items-center justify-center text-muted-foreground">
-                        <Scissors className="size-6" aria-hidden />
-                      </span>
-                    )}
-                  </div>
+                 <div className="relative aspect-[16/10] overflow-hidden bg-muted">
+  {appointment.offerImage || appointment.serviceImage ? (
+    <Image
+      src={appointment.offerImage || appointment.serviceImage}
+      alt={appointment.serviceName}
+      fill
+      sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
+      className="object-cover transition-transform duration-300 group-hover:scale-105"
+    />
+  ) : (
+    <span className="flex size-full items-center justify-center text-muted-foreground">
+      <Scissors className="size-6" aria-hidden />
+    </span>
+  )}
+</div>
 
                   <div className="flex flex-1 flex-col gap-3 p-4">
                     <div className="flex items-start justify-between gap-3">

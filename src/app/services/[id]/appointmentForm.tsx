@@ -53,6 +53,7 @@ export default function AppointmentForm({ service, offer }: AppointmentFormProps
   const [loading, setLoading] = useState(false)
 
   const searchParams = useSearchParams()
+  const offerImage = searchParams.get("offerImage") ?? ""
 
   const appliedOffer = useMemo(() => {
     const offerFromUrl = offerFromSearchParams(searchParams)
@@ -185,6 +186,7 @@ export default function AppointmentForm({ service, offer }: AppointmentFormProps
         body: JSON.stringify({
           serviceId: service.id,
           serviceName: service.name,
+          offerImage: offerImage,
           serviceImage: service.image,
           price: appliedOffer ? appliedOffer.finalPrice : service.price,
           duration: service.duration,
