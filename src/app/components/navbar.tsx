@@ -45,7 +45,7 @@ export default function Navbar() {
 
   const dashboardLink =
     userRole === "admin" ? "/admin-dashboard" : "/dashboard";
-
+const isSignInPage = pathname === "/signin";
   const currentPage = pathname || "/";
 
   const signInHref = `/signin?callbackURL=${encodeURIComponent(currentPage)}`;
@@ -113,9 +113,9 @@ export default function Navbar() {
           </li>
         </ul>
 
-        {showAuthLoading ? (
-          <div className="h-9 w-20" />
-        ) : authenticated ? (
+       {showAuthLoading || isSignInPage ? (
+  <div className="h-9 w-20" />
+) : authenticated ? (
           <DropdownMenu>
             <DropdownMenuTrigger render={<button />}>
               <Avatar>
@@ -212,7 +212,7 @@ export default function Navbar() {
               </Link>
             </nav>
 
-            {showAuthLoading ? null : authenticated ? (
+           {showAuthLoading || isSignInPage ? null : authenticated ? (
               <div className="mt-auto flex flex-col gap-2 px-4 pb-4">
                 <button
                   onClick={handleSignout}
