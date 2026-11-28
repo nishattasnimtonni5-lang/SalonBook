@@ -40,11 +40,16 @@ export default function Navbar() {
   const authenticated = !showAuthLoading && !!session?.user;
 
   const userRole = authenticated
-    ? (session.user as typeof session.user & { role?: string }).role
-    : undefined;
+  ? (
+      session.user as typeof session.user & {
+        role?: string;
+      }
+    ).role?.toLowerCase()
+  : undefined;
 
-  const dashboardLink =
-    userRole === "admin" ? "/admin-dashboard" : "/dashboard";
+const dashboardLink =
+  userRole === "admin" ? "/admin-dashboard" : "/dashboard";
+
 const isSignInPage = pathname === "/signin";
   const currentPage = pathname || "/";
 
